@@ -21,8 +21,11 @@ Later request (2026-11-04, Persian): change the Phase 1 backend to Java + Spring
 - 2026-11-04: Phase 1 (Python) — auth, RBAC, approval, profiles, dashboards, audit (iteration_1)
 - 2026-11-04: Phase 1 ported to Java/Spring + Phase 2: medications (CRUD, intake logs taken/missed), labs TSH/FT4/Tg/Anti-Tg (CRUD, per-test units, lab reference range, linear time-scaled trend chart, no interpretation), dashboard summaries, physician read-only meds/labs. Tested in sandbox with temporary JDK + PostgreSQL (iteration_2: 35/36 then fixes verified by curl/screenshot)
 
+- 2026-11-04: Phase 3 (Java) — appointments CRUD + status (scheduled/done/cancelled/missed, overdue prompt), in-app reminders (window before visit, dashboard + appointments page), next appointment on dashboard, physician read-only appointments; medication intake log with chosen Jalali date + 24h Persian time (future rejected). Flyway V3. iteration_3: backend 43/43, UI flows pass
+
 ## Backlog
-- P1 Phase 3: appointments/reminders + symptom tracking
+- P1: symptom tracking (remaining from original Phase 3 plan)
+- P2: push/email reminders when app is closed (needs FCM/email provider)
 - P1 Phase 4: treatment timeline + documents (file storage)
 - P1 Phase 5: education CMS with specialist review; physician notes / physician-entered labs
 - P2 Phase 6: PWA, Capacitor APK, production hosting, security review; Java automated tests (Testcontainers)

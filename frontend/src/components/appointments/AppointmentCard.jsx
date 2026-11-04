@@ -18,6 +18,7 @@ export default function AppointmentCard({ appt, onEdit, onChanged, readOnly = fa
     }
   };
   const setStatus = (status) => run(() => api.patch(`/patient/appointments/${appt.id}/status`, { status }), "وضعیت نوبت به‌روزرسانی شد");
+  const overdue = appt.status === "scheduled" && new Date(appt.scheduled_at) <= new Date();
   const reminderDue = appt.status === "scheduled" && appt.reminder_at && new Date(appt.reminder_at) <= new Date() && new Date(appt.scheduled_at) > new Date();
 
   return (
@@ -27,7 +28,7 @@ export default function AppointmentCard({ appt, onEdit, onChanged, readOnly = fa
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold text-slate-800" data-testid={`appointment-title-${appt.id}`}>{appt.title}</h3>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs ${STATUS_STYLE[appt.status]}`} data-testid={`appointment-status-${appt.id}`}>{APPT_STATUS[appt.status]}</span>
+            <span className={`rounded-full px-2.5 py-0.5 text-xs ${STATUS_STYLE[appt.status]}`} data-testid={`appointment-status-${appt.id}`}>{overdue ? "زمان گذشته — وضعیت را ثبت کنید" : APPT_STATUS[appt.status]}</span>
             {reminderDue && <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs text-amber-800"><BellRing className="h-3 w-3" /> یادآور</span>}
           </div>
           <p className="mt-1 text-sm font-medium text-slate-700" data-testid={`appointment-when-${appt.id}`}>{formatJalali(appt.scheduled_at, true)}</p>
@@ -49,6 +50,7 @@ export default function AppointmentCard({ appt, onEdit, onChanged, readOnly = fa
         <div className="mt-4 flex flex-wrap gap-2">
           <button onClick={() => setStatus("done")} data-testid={`appointment-done-${appt.id}`} className="flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800"><Check className="h-3.5 w-3.5" /> انجام شد</button>
           <button onClick={() => setStatus("cancelled")} data-testid={`appointment-cancel-${appt.id}`} className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50"><Ban className="h-3.5 w-3.5" /> لغو</button>
+          {overdue && <button onClick={() => setStatus("missed")} data-testid={`appointment-missed-${appt.id}`} className="flex items-center gap-1.5 rounded-full border border-rose-200 px-4 py-2 text-xs text-rose-600 hover:bg-rose-50">از دست رفت</button>}
         </div>
       )}
       {!readOnly && appt.status !== "scheduled" && (

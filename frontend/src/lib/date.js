@@ -23,14 +23,9 @@ export const todayJalali = () => toFa(dayjs().calendar("jalali").locale("fa").fo
 
 export const splitLocal = (iso) => {
   const d = dayjs(iso || undefined);
-  return { date: d.format("YYYY-MM-DD"), time: d.format("HH:mm") };
+  const m = iso ? d.minute() : Math.floor(d.minute() / 5) * 5;
+  return { date: d.format("YYYY-MM-DD"), time: `${d.format("HH")}:${String(Math.round(m / 5) * 5 % 60).padStart(2, "0")}` };
 };
 
 export const joinLocal = (date, time) => new Date(`${date}T${time || "00:00"}:00`).toISOString();
 
-export const splitLocal = (iso) => {
-  const d = dayjs(iso || undefined);
-  return { date: d.format("YYYY-MM-DD"), time: d.format("HH:mm") };
-};
-
-export const joinLocal = (date, time) => new Date(`${date}T${time || "00:00"}:00`).toISOString();

@@ -62,7 +62,7 @@ export default function MedicationCard({ med, onEdit, onChanged, readOnly = fals
             <h3 className="font-bold text-slate-800" data-testid={`medication-name-${med.id}`}>{med.name}</h3>
             {!med.active && <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-500">قطع‌شده</span>}
           </div>
-          <p className="mt-1 text-sm text-slate-600">{med.dose_text}{med.frequency_text && ` · ${med.frequency_text}`}</p>
+          <p className="mt-1 text-sm text-slate-600"><bdi>{med.dose_text}</bdi>{med.frequency_text && <> · <bdi>{med.frequency_text}</bdi></>}</p>
           {med.instructions && <p className="mt-1 text-xs text-slate-500">{med.instructions}</p>}
           <p className="mt-2 text-xs text-slate-400">
             {med.start_date && `از ${formatJalali(med.start_date)}`}{med.end_date && ` تا ${formatJalali(med.end_date)}`}

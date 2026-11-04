@@ -1,0 +1,38 @@
+{
+  "summary": "Phase 3 (appointments, reminders, medication log with a custom time) tested on the Java backend and the UI. When testing started the frontend did not compile: webpack reported Parsing errors, and the shipped bundle had none of the Phase 3 UI. Cause: the last edit batch was applied twice, leaving duplicate declarations in 4 files. The testing agent removed only the duplicated copies (no logic changes). After that, the backend passed 7/7 new Phase 3 tests and 36/36 Phase 1/2 regression tests. All requested UI flows pass: add, edit, done, cancel, reopen and delete an appointment; the reminder window; dashboard next appointment and reminders; custom-time medication log; the future-time guard on the client and the API; the read-only physician section; and the 5-item mobile bottom nav with no overflow.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PATCH /api/patient/appointments/{id}/status", "issue": "Nothing marks a past 'scheduled' appointment as 'missed'. It moves to the past tab but keeps the status 'scheduled', which the UI labels 'در پیش رو' (upcoming). 'missed' can only be set through the API."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "lib/date.js, lib/labels.js, App.js, pages/patient/PatientDashboard.jsx", "issue": "The frontend failed to compile because of duplicate declarations: splitLocal/joinLocal, APPT_TYPE/APPT_STATUS/REMIND_OPTIONS, the Appointments import and route, the RemindersList import, the NextAppointment component, and the dashboard reminders and next-appointment JSX were all doubled. The whole Phase 3 UI was unavailable. FIXED by testing agent (duplicates removed).", "selector": "n/a", "priority": "CRITICAL (fixed)"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Appointment dialog / medication log dialog", "issues": ["The time field uses the browser's native <input type=time>. It shows English digits and AM/PM (e.g. '03:17 PM') in an otherwise Persian UI. Consider a 24h Persian-digit time select."]},
+      {"screen": "Medication card subtitle", "issues": ["Mixed LTR/RTL text is reordered by the bidi algorithm: '100 mcg · daily' renders as 'mcg · daily 100'. Wrap LTR values in <bdi> or dir=auto."]},
+      {"screen": "Past tab", "issues": ["Past appointments that are still 'scheduled' show the status badge 'در پیش رو' (upcoming)."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_thyrocare_phase3_appointments.py", "/app/test_reports/pytest/pytest_phase3.xml"],
+  "action_items": [
+    "Review the duplicate-edit fix in lib/date.js, lib/labels.js, App.js and PatientDashboard.jsx, and check that your edit tooling does not apply blocks twice (the current git HEAD contained the duplicates).",
+    "Optional: auto-label past scheduled appointments as missed or overdue, or show a neutral badge in the past tab.",
+    "Optional: replace the native time input with a Persian 24h time picker; fix bidi on LTR medication text."
+  ],
+  "critical_code_review_comments": [
+    "AppointmentService.list filters in memory after loading all of the patient's appointments. This is fine at MVP scale; use repository queries if volumes grow.",
+    "Appointments can be created with scheduled_at in the past (no validation). This may be intentional for back-filling.",
+    "Reminders are in-app only, polled every 60s (RemindersCard refetchInterval). There is no push, SMS or email."
+  ],
+  "updated_files": ["/app/frontend/src/lib/date.js", "/app/frontend/src/lib/labels.js", "/app/frontend/src/App.js", "/app/frontend/src/pages/patient/PatientDashboard.jsx", "/app/backend/tests/test_thyrocare_phase3_appointments.py"],
+  "success_rate": {"backend": "100% (7/7 Phase 3 + 36/36 regression)", "frontend": "100% of requested flows after the compile fix"},
+  "seed_data_creation": "Created TEST_p3_*@demo.thyrocare.app patients through pytest; they were disabled at teardown. The UI appointment TEST_UI_visit and the medication TEST_UI_Levo (with its logs) were deleted. A temporary physician assignment was removed. The demo patient also has an appointment 'آزمایش TSH' (today 15:14 local, 1-day reminder) without the TEST_ prefix. The testing agent did not create it, probably E1 did during self-testing. It was left untouched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The Java backend runs on port 8001 (manual process). Run: REACT_APP_BACKEND_URL=<url> pytest /app/backend/tests/test_thyrocare_phase3_appointments.py (plus the phase1/phase2_java files). Jalali picker: click '[data-testid=X-date] input', then '.rmdp-day.rmdp-today span' or '.rmdp-day:not(.rmdp-deactive) span' with has_text, then click the dialog h2 to close it. The time input is native: use page.fill('[data-testid=X-time]', 'HH:MM'). For page.request inside browser automation, use absolute URLs plus an Origin header.",
+  "rca of the issue": "Frontend compile failure: each Phase 3 insert into shared files (date.js, labels.js, App.js, PatientDashboard.jsx) was committed twice. ESLint/Babel stopped with 'Identifier X has already been declared', so webpack served a failed build. Mitigation: remove the second copy of each block (done)."
+}
