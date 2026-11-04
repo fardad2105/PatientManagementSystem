@@ -17,7 +17,7 @@ export default function LabChart({ rows, testId }) {
   const units = [...new Set(rows.map((r) => r.unit))];
   const [unit, setUnit] = useState(units[0]);
   const active = units.includes(unit) ? unit : units[0];
-  const data = rows.filter((r) => r.unit === active).map((r) => ({ ...r, value: Number(r.value) }));
+  const data = rows.filter((r) => r.unit === active).map((r) => ({ ...r, value: Number(r.value), t: new Date(`${r.sample_date}T00:00:00`).getTime() }));
   if (data.length < 2) {
     return <p className="py-10 text-center text-sm text-slate-500" data-testid={`${testId}-empty`}>برای نمایش روند، دست‌کم دو نتیجه با یک واحد لازم است.</p>;
   }
@@ -35,10 +35,10 @@ export default function LabChart({ rows, testId }) {
         <ResponsiveContainer>
           <LineChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
-            <XAxis dataKey="sample_date" tickFormatter={formatJalaliShort} tick={{ fontSize: 11, fill: "#64748b" }} />
+            <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={formatJalaliShort} tick={{ fontSize: 11, fill: "#64748b" }} />
             <YAxis tickFormatter={(v) => toFa(v)} tick={{ fontSize: 11, fill: "#64748b" }} width={44} />
             <Tooltip content={<ChartTip />} />
-            <Line type="monotone" dataKey="value" stroke="#0f766e" strokeWidth={2.5} dot={{ r: 4, fill: "#0f766e" }} />
+            <Line type="linear" dataKey="value" stroke="#0f766e" strokeWidth={2.5} isAnimationActive={false} dot={{ r: 4, fill: "#0f766e" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>

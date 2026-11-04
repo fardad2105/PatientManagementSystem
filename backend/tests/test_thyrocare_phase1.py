@@ -103,11 +103,11 @@ class TestAuth:
         assert codes[5] == 429, codes
 
     def test_bcrypt_hash_format(self):
-        from pymongo import MongoClient
-        from dotenv import dotenv_values
-        env = dotenv_values("/app/backend/.env")
-        u = MongoClient(env["MONGO_URL"])[env["DB_NAME"]].users.find_one({"email": ADMIN[0]})
-        assert u["password_hash"].startswith("$2b$")
+        # Java backend: PostgreSQL 'thyrocare' (Spring BCrypt emits $2a$, compatible with $2b$)
+        import subprocess
+        out = subprocess.run(["su", "postgres", "-c", f"psql -d thyrocare -tAc \"select password_hash from users where email='{ADMIN[0]}'\""],
+                             capture_output=True, text=True).stdout.strip()
+        assert out.startswith("$2a$") or out.startswith("$2b$"), out
 
 
 # --- Registration / pending / mass assignment
@@ -228,7 +228,7 @@ class TestAssignments:
         pid = pat.get(f"{API}/auth/me").json()["id"]
         ids = [p["id"] for p in phys.get(f"{API}/physician/patients").json()]
         assert pid in ids
-        assert phys.get(f"{API}/physician/patients/000000000000000000000000").status_code == 404
+        assert phys.get(f"{API}/physician/patients/{uuid.uuid4()}").status_code == 404
         assert phys.get(f"{API}/physician/patients/not-an-id").status_code == 404
 
 

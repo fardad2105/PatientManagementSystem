@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 
 import app.thyrocare.domain.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 
 /** Request/response records. JSON uses snake_case via the global Jackson naming strategy. */
@@ -171,7 +172,8 @@ public final class Dtos {
 
     // ---------- dashboards ----------
     public record DashboardDto(UserDto user, ProfileBundle profile, int completeness, List<CareTeamMember> careTeam,
-                               List<String> upcomingModules, long medicationsActive, long dosesMissed7d,
+                               List<String> upcomingModules, long medicationsActive,
+                               @JsonProperty("doses_missed_7d") long dosesMissed7d,
                                List<LabDto> latestLabs) {
     }
 

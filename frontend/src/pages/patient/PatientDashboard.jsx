@@ -45,7 +45,7 @@ const HealthSummary = ({ data }) => (
       className="rounded-2xl border border-slate-200 bg-white p-6 transition-colors hover:border-teal-300">
       <div className="flex items-center gap-2 text-sm text-slate-500"><Pill className="h-4 w-4 text-teal-700" /> داروهای در حال مصرف</div>
       <p className="mt-2 text-4xl font-extrabold text-slate-800" data-testid="dashboard-medications-active">{toFa(data.medications_active)}</p>
-      <p className="mt-2 text-xs text-slate-500" data-testid="dashboard-doses-missed">مصرف فراموش‌شده در ۷ روز گذشته: {toFa(data.doses_missed7d)}</p>
+      <p className="mt-2 text-xs text-slate-500" data-testid="dashboard-doses-missed">مصرف فراموش‌شده در ۷ روز گذشته: {toFa(data.doses_missed_7d)}</p>
     </Link>
     <Link to="/patient/labs" data-testid="dashboard-labs-card"
       className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 transition-colors hover:border-teal-300">

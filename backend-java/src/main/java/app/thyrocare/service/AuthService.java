@@ -62,8 +62,6 @@ public class AuthService {
             if (attempt.getAttemptCount() >= MAX_ATTEMPTS) {
                 attempt.setAttemptCount(0);
                 attempt.setLockedUntil(now.plus(LOCK_MINUTES, ChronoUnit.MINUTES));
-                attempts.save(attempt);
-                throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, LOCKED);
             }
             attempts.save(attempt);
             throw ApiException.unauthorized("ایمیل یا رمز عبور اشتباه است");

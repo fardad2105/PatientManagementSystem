@@ -74,10 +74,14 @@ export default function MedicationCard({ med, onEdit, onChanged, readOnly = fals
           </div>
         )}
       </div>
-      {!readOnly && med.active && (
+      {!readOnly && (
         <div className="mt-4 flex flex-wrap gap-2">
-          <button onClick={() => log("taken")} data-testid={`medication-log-taken-${med.id}`} className="flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800"><Check className="h-3.5 w-3.5" /> مصرف کردم</button>
-          <button onClick={() => log("missed")} data-testid={`medication-log-missed-${med.id}`} className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50"><X className="h-3.5 w-3.5" /> فراموش کردم</button>
+          {med.active && (
+            <>
+              <button onClick={() => log("taken")} data-testid={`medication-log-taken-${med.id}`} className="flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800"><Check className="h-3.5 w-3.5" /> مصرف کردم</button>
+              <button onClick={() => log("missed")} data-testid={`medication-log-missed-${med.id}`} className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50"><X className="h-3.5 w-3.5" /> فراموش کردم</button>
+            </>
+          )}
           <button onClick={() => setOpen(!open)} data-testid={`medication-logs-toggle-${med.id}`} className="mr-auto flex items-center gap-1 px-2 text-xs text-teal-700">
             سابقه‌ی مصرف <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
           </button>

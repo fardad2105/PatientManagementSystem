@@ -1,0 +1,44 @@
+{
+  "summary": "Ran end-to-end tests against the new Java Spring Boot + PostgreSQL backend. Covered: the Phase 1 regression suite (moved to PostgreSQL), new Phase 2 API tests (medications, medication logs, labs, dashboard counters, object-level security, physician read-only access) and Playwright UI tests (Medications CRUD, logs, deletes with confirm, Labs tabs, add/edit/delete, chart with 2+ results, validation toasts, dashboard counters, physician detail page is read-only, unassigned patient gives an error page, 390px mobile bottom nav with no overflow). 35 of 36 pytest tests passed. The one failure: lockout now triggers on the 5th failed login instead of the 6th, which is different from the old contract. In the UI, every core flow worked. Found 1 functional input bug: the Persian decimal separator '٫' is rejected in lab values. Also found several minor and design issues.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/auth/login", "issue": "Lockout returns 429 on the 5th failed attempt (attempts 1-4 return 401, 5 returns 429). The Python contract and iteration_1 test returned 401 for 5 failures and 429 from the 6th. Cause: AuthService.login throws 429 when attemptCount >= MAX_ATTEMPTS on the same failing request. Fix: save the lock and still return 401 on the 5th attempt, then return 429 from the next one. The other option is to change the spec."},
+      {"endpoint": "GET /api/patient/labs?test_type=BOGUS, /api/.../not-a-uuid", "issue": "Bad enum or UUID path/query parameters are mapped to 404 by GlobalExceptionHandler.badId (MethodArgumentTypeMismatchException). This is acceptable for ids, but an invalid query filter should return 400 or 422."},
+      {"endpoint": "GET /api/patient/dashboard", "issue": "The response key is 'doses_missed7d' because Jackson's SnakeCase naming does not split before the digit. The frontend uses the same key, so nothing breaks. It is still an odd contract name: consider @JsonProperty(\"doses_missed_7d\") and update the frontend to match."},
+      {"endpoint": "POST/DELETE /api/patient/medications/{id}/logs, /medication-logs/{id}", "issue": "Adding and deleting logs are not written to the audit log, unlike medication and lab CRUD."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "LabDialog value/ref inputs (lib/date.js toEn)", "issue": "Entering a value with the Persian/Arabic decimal separator '٫' (U+066B), e.g. '۰٫۸', shows the toast 'مقادیر عددی معتبر نیستند' and nothing is saved. Persian digits with an ASCII '.' work. toEn only converts digits. It should also map '٫' to '.' (and possibly '،'/',' too).", "selector": "[data-testid='lab-value-input'], [data-testid='lab-ref-low-input'], [data-testid='lab-ref-high-input']", "priority": "MEDIUM"},
+      {"component": "MedicationCard (inactive medication)", "issue": "When a medication is marked inactive (قطع‌شده), the log buttons and the logs toggle (medication-logs-toggle-{id}) are hidden. Patients can no longer see or delete past intake logs for stopped medications.", "selector": "[data-testid^='medication-logs-toggle-']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Medication and Lab dialogs (desktop and mobile)", "issues": ["The shadcn Dialog close 'X' is placed top-right. In RTL it overlaps the first letter of the title ('افزودن دارو' / 'ثبت نتیجه آزمایش'). Move the close button to the left in RTL, or add padding to the title."]},
+      {"screen": "Lab chart (patient + physician)", "issues": ["X-axis tick labels use a 2-digit Jalali year (e.g. '۰۵/۰۸/۰۳'), which is ambiguous. Use 'YYYY/MM' or the month name.", "The curve type is 'monotone', so the smoothed line suggests values between samples. 'linear' is more neutral for no-interpretation clinical data.", "The x-axis is categorical, not time-proportional, so uneven sampling intervals look equally spaced."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_thyrocare_phase1.py", "/app/backend/tests/test_thyrocare_phase2_java.py", "/app/test_reports/pytest/pytest_results_iter2.xml"],
+  "action_items": [
+    "Decide the lockout semantics. Either return 401 on the 5th failure and 429 from the 6th (as the Python contract and iteration_1 did), or update the spec and the test.",
+    "Handle the Persian decimal separator '٫' in toEn / LabDialog number parsing.",
+    "Fix the RTL dialog close-button overlap with the title.",
+    "Optional: return 400/422 for an invalid test_type query parameter, audit medication log create/delete, show the log history for inactive medications, use a full Jalali year on the chart axis and a linear line."
+  ],
+  "critical_code_review_comments": [
+    "AuthService.login: the 429 is thrown on the same request that reaches MAX_ATTEMPTS, so only 4 plain 401s are seen before the lockout.",
+    "MedicationService.toDto runs one extra query per medication (findFirstByMedication_Id...) when listing, an N+1 pattern. It is acceptable at MVP scale, but a batched query would be better.",
+    "MedicationService.logs returns at most 30 logs (findTop30) with no pagination or 'show more' in the UI.",
+    "OriginCheckFilter only checks requests that carry cookies and an Origin header. That is fine for cookie CSRF. The Bearer path is not cookie-based, so this is OK.",
+    "Spring BCrypt produces $2a$ hashes. They are compatible with $2b$, and the test was adjusted to accept both."
+  ],
+  "updated_files": ["/app/backend/tests/test_thyrocare_phase1.py (bcrypt check now reads PostgreSQL; the invalid-id check uses a random UUID)", "/app/backend/tests/test_thyrocare_phase2_java.py (new)"],
+  "success_rate": {"backend": "97% (35/36)", "frontend": "95% (all core flows pass; 1 Persian decimal input bug)"},
+  "seed_data_creation": "Created TEST_ patients test_p2_*@demo.thyrocare.app (pytest, disabled at teardown) and test_ui_fb1918@demo.thyrocare.app (id 944d3e29-ccdf-41f2-aacd-a6d47d2a0628, now disabled; still has 2 TSH lab rows). The demo patient, physician and assignment were not changed. The temporary assignment of the demo physician to a TEST patient was removed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The Java backend runs as a manual process on port 8001 (not supervisor). Run: REACT_APP_BACKEND_URL=<url> pytest /app/backend/tests/test_thyrocare_phase1.py /app/backend/tests/test_thyrocare_phase2_java.py. The Jalali picker (react-multi-date-picker) can be driven by clicking '[data-testid=X] input', then '.rmdp-day span' with has_text, then clicking the dialog h2 to close it. Radix selects use '{testId}-option-{value}'. The dashboard uses the key doses_missed7d.",
+  "rca of the issue": "Persian decimal bug: lib/date.js toEn replaces only the [۰-۹] and [٠-٩] digit ranges. U+066B '٫' stays in the string, so Number() returns NaN and LabDialog stops with the 'invalid numbers' toast. Lockout off-by-one: in AuthService.login the counter check (>=5) and the 429 throw happen in the same failing request."
+}

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -38,7 +39,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> badId(MethodArgumentTypeMismatchException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("detail", "مورد یافت نشد"));
+        if (e.getParameter().hasParameterAnnotation(PathVariable.class)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("detail", "مورد یافت نشد"));
+        }
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(Map.of("detail", List.of(Map.of("loc", List.of("query", e.getName()), "msg", "مقدار نامعتبر است"))));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

@@ -99,12 +99,15 @@ public class PatientController {
     @PostMapping("/medications/{id}/logs")
     public MedicationLogDto addLog(@PathVariable UUID id, @Valid @RequestBody MedicationLogRequest body,
                                    @AuthenticationPrincipal User me) {
-        return medications.addLog(me.getId(), id, body);
+        MedicationLogDto dto = medications.addLog(me.getId(), id, body);
+        audit.log(me, "create", "medication_log", dto.id());
+        return dto;
     }
 
     @DeleteMapping("/medication-logs/{logId}")
     public Map<String, Boolean> deleteLog(@PathVariable UUID logId, @AuthenticationPrincipal User me) {
         medications.deleteLog(me.getId(), logId);
+        audit.log(me, "delete", "medication_log", logId);
         return Map.of("ok", true);
     }
 
