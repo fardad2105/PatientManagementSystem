@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, EmailStr, Field
 from pymongo.errors import DuplicateKeyError
 
-from core import User, audit, db, hash_password, now_iso, require_role, to_oid
+from core import PhoneStr, User, audit, db, hash_password, now_iso, require_role, to_oid
 
 router = APIRouter(prefix="/api/admin")
 admin_only = require_role("admin")
@@ -19,7 +19,7 @@ class PhysicianIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     specialty: Optional[str] = Field(default="فوق‌تخصص غدد درون‌ریز", max_length=80)
-    phone: Optional[str] = Field(default=None, pattern=r"^[0-9+\-\s]{7,20}$")
+    phone: PhoneStr
 
 
 class ResetPasswordIn(BaseModel):
@@ -81,7 +81,8 @@ async def reset_password(user_id: str, body: ResetPasswordIn, admin: User = Depe
     target = await get_user_or_404(user_id)
     if target.role == "admin":
         raise HTTPException(status_code=403, detail="رمز مدیر از این بخش قابل تغییر نیست")
-    await db.users.update_one({"_id": to_oid(user_id)}, {"$set": {"password_hash": hash_password(body.new_password)}})
+    await db.users.update_one({"_id": to_oid(user_id)},
+                              {"$set": {"password_hash": hash_password(body.new_password)}, "$inc": {"token_version": 1}})
     await audit(admin, "reset_password", "user", user_id)
     return {"ok": True}
 

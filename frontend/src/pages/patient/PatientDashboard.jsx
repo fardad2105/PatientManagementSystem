@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Pill, FlaskConical, CalendarClock, HeartPulse, History, FileText, BookOpen, Stethoscope, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { api } from "@/lib/api";
+import { api, apiError } from "@/lib/api";
 import { toFa } from "@/lib/date";
 import { MedicalSummary } from "@/components/ProfileSummary";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
@@ -58,7 +58,8 @@ const ComingSoon = ({ modules }) => (
 );
 
 export default function PatientDashboard() {
-  const { data, isLoading } = useQuery({ queryKey: ["patient-dashboard"], queryFn: () => api.get("/patient/dashboard").then((r) => r.data) });
+  const { data, isLoading, error } = useQuery({ queryKey: ["patient-dashboard"], queryFn: () => api.get("/patient/dashboard").then((r) => r.data) });
+  if (error) return <p className="rounded-2xl bg-rose-50 p-6 text-sm text-rose-700" data-testid="dashboard-error">{apiError(error)}</p>;
   if (isLoading || !data) return <FullScreenLoader />;
 
   return (

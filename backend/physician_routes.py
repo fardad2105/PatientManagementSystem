@@ -11,7 +11,7 @@ physician_only = require_role("physician")
 async def list_patients(user: User = Depends(physician_only)):
     links = await db.physician_assignments.find({"physician_id": user.id}).to_list(1000)
     ids = [to_oid(link["patient_id"]) for link in links]
-    patients = await db.users.find({"_id": {"$in": ids}, "role": "patient"}).sort("name", 1).to_list(1000)
+    patients = await db.users.find({"_id": {"$in": ids}, "role": "patient", "status": "active"}).sort("name", 1).to_list(1000)
     medical = {m["patient_id"]: m for m in await db.medical_profiles.find(
         {"patient_id": {"$in": [str(i) for i in ids]}}).to_list(1000)}
     result = []
@@ -29,7 +29,7 @@ async def list_patients(user: User = Depends(physician_only)):
 @router.get("/patients/{patient_id}")
 async def get_patient(patient_id: str, user: User = Depends(physician_only)):
     link = await db.physician_assignments.find_one({"physician_id": user.id, "patient_id": patient_id})
-    patient = await db.users.find_one({"_id": to_oid(patient_id), "role": "patient"}) if link else None
+    patient = await db.users.find_one({"_id": to_oid(patient_id), "role": "patient", "status": "active"}) if link else None
     if not patient:
         await audit(user, "view", "patient_record", patient_id, "deny", "not assigned")
         raise HTTPException(status_code=404, detail="بیمار یافت نشد")

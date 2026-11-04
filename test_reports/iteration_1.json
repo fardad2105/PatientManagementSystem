@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 1: full E2E testing of ThyroCare Phase 1 (backend pytest 27 core + 4 edge tests, plus Playwright on desktop 1920 and mobile 390). Working: login redirects for all roles, Persian login error, register -> /pending, pending users blocked (403 API, UI redirect to /pending), approve/reject/disable/activate/reset-password (API and UI), create physician and duplicate email (400 + Persian toast), assign/duplicate/delete assignment (API and UI), physician scoping (unassigned patient 404, 404 after unassign, read-only detail), RBAC matrix, mass-assignment ignored, CSRF foreign Origin -> 403, httpOnly cookies, bcrypt $2b$, profile personal/medical save with Jalali picker and selects, change password, completeness 0% -> 100%, Jalali dates with Persian digits correct, RTL layout, mobile bottom nav with no horizontal overflow. FAILED: brute-force lockout does not trigger after 5 attempts. Validation gaps: impossible dates, Persian digits, future dates.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/auth/login", "issue": "Brute-force lockout is not enforced. After 6 bad attempts on the same email, all return 401 and none return 429. RCA: the identifier is f'{request.client.host}:{email}', and request.client.host is the k8s ingress pod IP, which alternates between pods (DB shows 10.6.131.141:<email> count=3 and 10.6.131.142:<email> count=3). Counters are split, so an attacker gets about 5 x (number of ingress pods) attempts. Also, real client IPs are never seen. Fix: key by email only (or use the first X-Forwarded-For hop + email), and use an atomic $inc with find_one_and_update.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "PUT /api/patient/profile/personal|medical", "issue": "DateStr is only a regex check, so impossible dates like '2023-13-45' are accepted (200). The frontend picker silently rolls them over to a different date (it showed 1402/11/25), which corrupts data. Use datetime.date or add a validator."},
+      {"endpoint": "PUT /api/patient/profile/*", "issue": "\\d in the patterns matches Unicode digits, so national_id '۰۰۱۲۳۴۵۶۷۸' and date '۲۰۲۳-۰۱-۰۱' are accepted and stored with Persian digits. The phone pattern uses [0-9], so Persian-keyboard users typing ۰۹۱۲... get a generic error. Normalize Persian and Arabic digits to ASCII (frontend and/or backend) and use [0-9] in patterns."},
+      {"endpoint": "PUT /api/patient/profile/*", "issue": "Future dates are accepted for birth_date, diagnosis_date, surgery_date and last_rai_date (e.g. 2099-01-01)."},
+      {"endpoint": "POST /api/admin/users/{id}/reset-password, POST /api/auth/change-password", "issue": "Existing sessions and refresh tokens (7 days) stay valid after a password reset or change. No token version or password_changed_at check in get_current_user or refresh."},
+      {"endpoint": "GET /api/physician/patients/{id}", "issue": "A physician can still view a patient that the admin has disabled, as long as the assignment exists (no status filter)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PatientDashboard", "issue": "If /patient/dashboard errors (isLoading=false, data=undefined), the FullScreenLoader spins forever. There is no error state.", "selector": "[data-testid='patient-dashboard']", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Profile validation", "issue": "Invalid national_id (e.g. '12345') only shows a generic toast ('برخی از مقادیر واردشده معتبر نیستند...') and does not say which field is wrong. There is no client-side 10-digit check. It does not crash.", "affected_selectors": ["[data-testid='personal-national-id-input']", "[data-testid='personal-save-button']"]}
+    ],
+    "design_issues": [
+      {"screen": "Login/Register hero image", "issues": ["The stock photo shows a doctor badge reading 'UROLOGIC ONCOLOGY BRANCH', which does not match a thyroid cancer app. Consider a different image."]},
+      {"screen": "Jalali date picker (birth date)", "issues": ["Picking a birth year decades back means navigating month by month unless the user knows to click the header. Consider adding a year selector or limiting maxDate to today."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_thyrocare_phase1.py", "/app/backend/tests/test_thyrocare_validation_edge.py", "/app/backend/tests/check_demo_state.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix the login lockout identifier: stop using request.client.host (ingress IP that varies per pod). Key by email (optionally plus the X-Forwarded-For first hop) and use an atomic $inc.",
+    "Replace the regex DateStr with real date validation (datetime.date or a validator using date.fromisoformat), and reject future dates where clinically impossible.",
+    "Normalize Persian/Arabic digits to ASCII before validation (frontend inputs and/or backend validators). Use [0-9] instead of \\d.",
+    "Show field-specific Persian validation errors (map the 422 loc to a field name), and add a client-side 10-digit national_id check.",
+    "Optional: invalidate sessions on password reset/change; add an error state on PatientDashboard; filter disabled patients in the physician views."
+  ],
+  "critical_code_review_comments": [
+    "auth_routes.login: the read-then-update on login_attempts is not atomic, so parallel requests can exceed MAX_ATTEMPTS.",
+    "core.DateStr: the pattern-only check allows impossible dates and Unicode digits.",
+    "server.py uses the deprecated @app.on_event. Prefer a lifespan handler (non-blocking).",
+    "CSRF middleware only checks when an Origin header is present. That is acceptable with SameSite=Lax plus JSON bodies, but note that requests without an Origin pass.",
+    "There is no endpoint to delete a user, so test users can only be disabled (TEST_ accounts remain in the DB as disabled)."
+  ],
+  "updated_files": ["/app/backend/tests/test_thyrocare_phase1.py", "/app/backend/tests/test_thyrocare_validation_edge.py", "/app/backend/tests/check_demo_state.py"],
+  "success_rate": {"backend": "96% core (26/27); 0/4 validation edge tests", "frontend": "~95% (all requested flows pass; minor validation UX gaps)"},
+  "test_credentials": "Used /app/memory/test_credentials.md. All demo accounts are unchanged and still log in (verified at the end). Demo patient is active and assigned to the demo physician. Pending demo user is still pending.",
+  "seed_data_creation": "Created test_*@demo.thyrocare.app users named TEST_*. There is no delete endpoint, so all were set to status=disabled at the end. Test assignments were deleted. Seeded/demo data was not modified.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app/backend && REACT_APP_BACKEND_URL=<url> python -m pytest tests/ -n 0 -v. Note: pytest.ini forces xdist, so use -n 0, not -p no:xdist. Admin tab testids: admin-tab-approvals, admin-tab-users, admin-tab-physician, admin-tab-assign, admin-tab-audit. Create physician submit: create-physician-submit. The Jalali picker is react-multi-date-picker: click '[data-testid=X] input' and then '.rmdp-day span'. After the fixes, re-run test_brute_force_lockout and test_thyrocare_validation_edge.py.",
+  "rca of the issue": "Lockout: login_attempts identifiers in the DB were '10.6.131.141:test_lock_x' (count 3) and '10.6.131.142:test_lock_x' (count 3) after 6 failures. request.client.host is the ingress pod IP, which alternates between pods, so the counter never reaches 5. Repro: send 6 bad logins to a throwaway email; every response is 401 and none is 429. Mitigation: key the counter by normalized email (plus the real client IP from X-Forwarded-For if desired)."
+}

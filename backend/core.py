@@ -1,5 +1,6 @@
 import os
-from datetime import datetime, timezone, timedelta
+import re
+from datetime import date, datetime, timezone, timedelta
 from typing import Annotated, Optional
 
 import bcrypt
@@ -18,7 +19,31 @@ ACCESS_MINUTES = 15
 REFRESH_DAYS = 7
 
 PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v))]
-DateStr = Annotated[Optional[str], Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")]
+_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
+
+
+def ascii_digits(v):
+    if not isinstance(v, str):
+        return v
+    v = v.translate(_DIGITS).strip()
+    return v or None
+
+
+def past_date(v):
+    v = ascii_digits(v)
+    if v is None:
+        return None
+    if not isinstance(v, str) or not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", v):
+        raise ValueError("قالب تاریخ نامعتبر است")
+    d = date.fromisoformat(v)
+    if d > date.today():
+        raise ValueError("تاریخ نمی‌تواند در آینده باشد")
+    return v
+
+
+DateStr = Annotated[Optional[str], BeforeValidator(past_date), Field(default=None)]
+PhoneStr = Annotated[Optional[str], BeforeValidator(ascii_digits), Field(default=None, pattern=r"^[0-9+\-\s]{7,20}$")]
+NationalIdStr = Annotated[Optional[str], BeforeValidator(ascii_digits), Field(default=None, pattern=r"^[0-9]{10}$")]
 
 
 def now_iso() -> str:
@@ -52,11 +77,12 @@ class User(BaseDocument):
     phone: Optional[str] = None
     specialty: Optional[str] = None
     password_hash: str = ""
+    token_version: int = 0
     created_at: str = Field(default_factory=now_iso)
     status_changed_at: Optional[str] = None
 
     def public(self) -> dict:
-        return self.model_dump(exclude={"password_hash"})
+        return self.model_dump(exclude={"password_hash", "token_version"})
 
 
 def hash_password(password: str) -> str:
@@ -71,26 +97,34 @@ def _secret() -> str:
     return os.environ["JWT_SECRET"]
 
 
-def create_token(user_id: str, kind: str) -> str:
+def create_token(user: "User", kind: str) -> str:
     delta = timedelta(minutes=ACCESS_MINUTES) if kind == "access" else timedelta(days=REFRESH_DAYS)
-    payload = {"sub": user_id, "type": kind, "exp": datetime.now(timezone.utc) + delta}
+    payload = {"sub": user.id, "ver": user.token_version, "type": kind, "exp": datetime.now(timezone.utc) + delta}
     return jwt.encode(payload, _secret(), algorithm=JWT_ALGORITHM)
 
 
-def decode_token(token: str, kind: str) -> str:
+def decode_token(token: str, kind: str) -> dict:
     try:
         payload = jwt.decode(token, _secret(), algorithms=[JWT_ALGORITHM])
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="نشست شما منقضی شده است")
     if payload.get("type") != kind:
         raise HTTPException(status_code=401, detail="توکن نامعتبر است")
-    return payload["sub"]
+    return payload
 
 
-def set_auth_cookies(response: Response, user_id: str) -> None:
+async def user_from_token(token: str, kind: str) -> Optional["User"]:
+    payload = decode_token(token, kind)
+    user = User.from_mongo(await db.users.find_one({"_id": to_oid(payload["sub"])}))
+    if not user or user.status in ("disabled", "rejected") or payload.get("ver", 0) != user.token_version:
+        return None
+    return user
+
+
+def set_auth_cookies(response: Response, user: "User") -> None:
     opts = dict(httponly=True, secure=True, samesite="lax", path="/")
-    response.set_cookie("access_token", create_token(user_id, "access"), max_age=ACCESS_MINUTES * 60, **opts)
-    response.set_cookie("refresh_token", create_token(user_id, "refresh"), max_age=REFRESH_DAYS * 86400, **opts)
+    response.set_cookie("access_token", create_token(user, "access"), max_age=ACCESS_MINUTES * 60, **opts)
+    response.set_cookie("refresh_token", create_token(user, "refresh"), max_age=REFRESH_DAYS * 86400, **opts)
 
 
 def clear_auth_cookies(response: Response) -> None:
@@ -106,10 +140,9 @@ async def get_current_user(request: Request) -> User:
             token = header[7:]
     if not token:
         raise HTTPException(status_code=401, detail="لطفاً وارد حساب کاربری شوید")
-    user_id = decode_token(token, "access")
-    user = User.from_mongo(await db.users.find_one({"_id": to_oid(user_id)}))
-    if not user or user.status in ("disabled", "rejected"):
-        raise HTTPException(status_code=401, detail="حساب کاربری فعال نیست")
+    user = await user_from_token(token, "access")
+    if not user:
+        raise HTTPException(status_code=401, detail="نشست شما معتبر نیست؛ دوباره وارد شوید")
     return user
 
 

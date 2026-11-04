@@ -6,11 +6,20 @@ import { Field, inputCls, OptionSelect } from "@/components/Field";
 import { JalaliDateInput } from "@/components/JalaliDateInput";
 import { GENDER } from "@/lib/labels";
 import { api, apiError } from "@/lib/api";
+import { toEn } from "@/lib/date";
 
 const FIELDS = ["first_name", "last_name", "national_id", "birth_date", "gender", "phone", "city", "address",
   "emergency_contact_name", "emergency_contact_relation", "emergency_contact_phone"];
 
-const clean = (form) => Object.fromEntries(FIELDS.map((k) => [k, form[k] === "" || form[k] === undefined ? null : form[k]]));
+const clean = (form) => Object.fromEntries(FIELDS.map((k) => [k, form[k] === "" || form[k] === undefined ? null : toEn(form[k])]));
+
+const validate = (data) => {
+  if (data.national_id && !/^[0-9]{10}$/.test(data.national_id)) return "کد ملی باید دقیقاً ۱۰ رقم باشد.";
+  const phoneRe = /^[0-9+\-\s]{7,20}$/;
+  if (data.phone && !phoneRe.test(data.phone)) return "شماره تلفن همراه معتبر نیست.";
+  if (data.emergency_contact_phone && !phoneRe.test(data.emergency_contact_phone)) return "شماره تلفن تماس اضطراری معتبر نیست.";
+  return null;
+};
 
 export const SaveButton = ({ loading, testId }) => (
   <button type="submit" disabled={loading} data-testid={testId}
@@ -31,9 +40,12 @@ export default function PersonalForm({ initial, onSaved }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    const data = clean(form);
+    const problem = validate(data);
+    if (problem) return toast.error(problem);
     setLoading(true);
     try {
-      await api.put("/patient/profile/personal", clean(form));
+      await api.put("/patient/profile/personal", data);
       toast.success("اطلاعات فردی ذخیره شد");
       onSaved();
     } catch (err) {

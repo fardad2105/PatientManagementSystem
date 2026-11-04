@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { api } from "@/lib/api";
+import { api, apiError } from "@/lib/api";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
 import PersonalForm from "@/components/profile/PersonalForm";
 import MedicalForm from "@/components/profile/MedicalForm";
@@ -10,11 +10,12 @@ const tabCls = "rounded-full px-4 py-2 text-sm data-[state=active]:bg-teal-700 d
 
 export default function PatientProfile() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({ queryKey: ["patient-profile"], queryFn: () => api.get("/patient/profile").then((r) => r.data) });
+  const { data, isLoading, error } = useQuery({ queryKey: ["patient-profile"], queryFn: () => api.get("/patient/profile").then((r) => r.data) });
   const onSaved = () => {
     qc.invalidateQueries({ queryKey: ["patient-profile"] });
     qc.invalidateQueries({ queryKey: ["patient-dashboard"] });
   };
+  if (error) return <p className="rounded-2xl bg-rose-50 p-6 text-sm text-rose-700" data-testid="profile-error">{apiError(error)}</p>;
   if (isLoading || !data) return <FullScreenLoader />;
 
   return (

@@ -16,6 +16,7 @@ export const JalaliDateInput = ({ value, onChange, testId, disabled }) => (
       locale={persian_fa}
       value={toPicker(value)}
       disabled={disabled}
+      maxDate={new DateObject({ calendar: persian, locale: persian_fa })}
       onChange={(d) => onChange(d ? new DateObject(d).convert(gregorian, gregorian_en).format("YYYY-MM-DD") : null)}
       calendarPosition="bottom-right"
       containerClassName="w-full"

@@ -2,7 +2,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-from core import BaseDocument, DateStr, db
+from core import BaseDocument, DateStr, NationalIdStr, PhoneStr, db
 
 Tri = Optional[Literal["yes", "no", "unknown"]]
 
@@ -10,15 +10,15 @@ Tri = Optional[Literal["yes", "no", "unknown"]]
 class PersonalIn(BaseModel):
     first_name: Optional[str] = Field(default=None, max_length=60)
     last_name: Optional[str] = Field(default=None, max_length=60)
-    national_id: Optional[str] = Field(default=None, pattern=r"^\d{10}$")
+    national_id: NationalIdStr
     birth_date: DateStr
     gender: Optional[Literal["male", "female", "other"]] = None
-    phone: Optional[str] = Field(default=None, pattern=r"^[0-9+\-\s]{7,20}$")
+    phone: PhoneStr
     city: Optional[str] = Field(default=None, max_length=60)
     address: Optional[str] = Field(default=None, max_length=300)
     emergency_contact_name: Optional[str] = Field(default=None, max_length=80)
     emergency_contact_relation: Optional[str] = Field(default=None, max_length=40)
-    emergency_contact_phone: Optional[str] = Field(default=None, pattern=r"^[0-9+\-\s]{7,20}$")
+    emergency_contact_phone: PhoneStr
 
 
 class MedicalIn(BaseModel):

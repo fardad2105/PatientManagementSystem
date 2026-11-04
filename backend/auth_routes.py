@@ -4,8 +4,10 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, EmailStr, Field
 
-from core import (User, audit, clear_auth_cookies, db, decode_token, get_current_user, hash_password, now_iso,
-                  set_auth_cookies, to_oid, verify_password)
+from pymongo import ReturnDocument
+
+from core import (PhoneStr, User, audit, clear_auth_cookies, db, get_current_user, hash_password, now_iso,
+                  set_auth_cookies, to_oid, user_from_token, verify_password)
 
 router = APIRouter(prefix="/api/auth")
 
@@ -17,7 +19,7 @@ class RegisterIn(BaseModel):
     name: str = Field(min_length=2, max_length=80)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
-    phone: Optional[str] = Field(default=None, pattern=r"^[0-9+\-\s]{7,20}$")
+    phone: PhoneStr
 
 
 class LoginIn(BaseModel):
@@ -40,26 +42,29 @@ async def register(body: RegisterIn, response: Response):
     result = await db.users.insert_one(user.to_mongo())
     user.id = str(result.inserted_id)
     await audit(user, "register", "user", user.id)
-    set_auth_cookies(response, user.id)
+    set_auth_cookies(response, user)
     return user.public()
 
 
 @router.post("/login")
-async def login(body: LoginIn, request: Request, response: Response):
+async def login(body: LoginIn, response: Response):
     email = body.email.strip().lower()
-    identifier = f"{request.client.host if request.client else 'unknown'}:{email}"
+    identifier = email  # per-account lockout; ingress pod IPs are not real client IPs
+    locked_msg = "به دلیل تلاش‌های ناموفق متعدد، ورود به مدت ۱۵ دقیقه مسدود شد"
     attempt = await db.login_attempts.find_one({"identifier": identifier})
     now = datetime.now(timezone.utc)
     if attempt and attempt.get("locked_until") and datetime.fromisoformat(attempt["locked_until"]) > now:
-        raise HTTPException(status_code=429, detail="به دلیل تلاش‌های ناموفق متعدد، ورود به مدت ۱۵ دقیقه مسدود شد")
+        raise HTTPException(status_code=429, detail=locked_msg)
     user = User.from_mongo(await db.users.find_one({"email": email}))
     if not user or not verify_password(body.password, user.password_hash):
-        count = (attempt or {}).get("count", 0) + 1
-        update = {"count": count, "updated_at": now.isoformat()}
-        if count >= MAX_ATTEMPTS:
-            update = {"count": 0, "locked_until": (now + timedelta(minutes=LOCK_MINUTES)).isoformat()}
-        await db.login_attempts.update_one({"identifier": identifier}, {"$set": update}, upsert=True)
+        doc = await db.login_attempts.find_one_and_update(
+            {"identifier": identifier}, {"$inc": {"count": 1}, "$set": {"updated_at": now.isoformat()}},
+            upsert=True, return_document=ReturnDocument.AFTER)
         await audit(None, "login_failed", "user", None, "deny", email)
+        if doc["count"] >= MAX_ATTEMPTS:
+            await db.login_attempts.update_one({"identifier": identifier}, {"$set": {
+                "count": 0, "locked_until": (now + timedelta(minutes=LOCK_MINUTES)).isoformat()}})
+            raise HTTPException(status_code=429, detail=locked_msg)
         raise HTTPException(status_code=401, detail="ایمیل یا رمز عبور اشتباه است")
     if user.status == "rejected":
         raise HTTPException(status_code=403, detail="درخواست ثبت‌نام شما توسط مدیر سیستم رد شده است")
@@ -67,7 +72,7 @@ async def login(body: LoginIn, request: Request, response: Response):
         raise HTTPException(status_code=403, detail="حساب کاربری شما غیرفعال شده است")
     await db.login_attempts.delete_one({"identifier": identifier})
     await audit(user, "login", "user", user.id)
-    set_auth_cookies(response, user.id)
+    set_auth_cookies(response, user)
     return user.public()
 
 
@@ -87,20 +92,22 @@ async def refresh(request: Request, response: Response):
     token = request.cookies.get("refresh_token")
     if not token:
         raise HTTPException(status_code=401, detail="نشست شما منقضی شده است")
-    user_id = decode_token(token, "refresh")
-    user = User.from_mongo(await db.users.find_one({"_id": to_oid(user_id)}))
-    if not user or user.status in ("disabled", "rejected"):
+    user = await user_from_token(token, "refresh")
+    if not user:
         clear_auth_cookies(response)
-        raise HTTPException(status_code=401, detail="حساب کاربری فعال نیست")
-    set_auth_cookies(response, user.id)
+        raise HTTPException(status_code=401, detail="نشست شما معتبر نیست؛ دوباره وارد شوید")
+    set_auth_cookies(response, user)
     return user.public()
 
 
 @router.post("/change-password")
-async def change_password(body: ChangePasswordIn, user: User = Depends(get_current_user)):
+async def change_password(body: ChangePasswordIn, response: Response, user: User = Depends(get_current_user)):
     if not verify_password(body.current_password, user.password_hash):
         raise HTTPException(status_code=400, detail="رمز عبور فعلی اشتباه است")
-    await db.users.update_one({"_id": to_oid(user.id)},
-                              {"$set": {"password_hash": hash_password(body.new_password), "password_changed_at": now_iso()}})
+    await db.users.update_one({"_id": to_oid(user.id)}, {
+        "$set": {"password_hash": hash_password(body.new_password), "password_changed_at": now_iso()},
+        "$inc": {"token_version": 1}})
     await audit(user, "change_password", "user", user.id)
+    user.token_version += 1
+    set_auth_cookies(response, user)
     return {"ok": True}
