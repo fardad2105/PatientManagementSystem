@@ -1,34 +1,27 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.rmdp-container {
+    width: 100%;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.rmdp-wrapper {
+    font-family: "Vazirmatn", sans-serif;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.rmdp-day.rmdp-selected span:not(.highlight),
+.rmdp-week-day {
+    background-color: #0f766e;
+    color: #fff;
 }
 
-.App-link {
-    color: #61dafb;
+.rmdp-week-day {
+    background-color: transparent;
+    color: #0f766e;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
+    background-color: #ccfbf1;
+    color: #115e59;
+}
+
+.rmdp-arrow-container:hover {
+    background-color: #0f766e;
 }

@@ -1,0 +1,100 @@
+{
+  "project_name": "ThyroCare",
+  "project_description": "Persian-language, fully RTL healthcare web app (Master's thesis, Health IT) for self-management and longitudinal health information management of adult patients with differentiated thyroid cancer (papillary/follicular) after thyroid surgery in follow-up.",
+  "language_and_direction": {
+    "language": "fa",
+    "direction": "rtl",
+    "calendar": "Jalali (Shamsi)",
+    "font_family": "Vazirmatn, system-ui, sans-serif"
+  },
+  "roles": [
+    {
+      "role": "patient",
+      "label_fa": "بیمار",
+      "permissions": ["view_dashboard", "view_profile", "edit_profile", "view_coming_soon_modules"]
+    },
+    {
+      "role": "physician",
+      "label_fa": "پزشک فوق‌تخصص غدد",
+      "permissions": ["view_assigned_patients", "view_patient_profile_readonly"]
+    },
+    {
+      "role": "admin",
+      "label_fa": "مدیر سیستم",
+      "permissions": ["approve_users", "reject_users", "disable_users", "create_physician", "assign_patient_to_physician"]
+    }
+  ],
+  "typography": {
+    "font_family_import": "<link href=\"https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap\" rel=\"stylesheet\">",
+    "primary_font": "Vazirmatn",
+    "headlines": {
+      "h1": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-snug",
+      "h2": "text-2xl sm:text-3xl font-bold leading-snug",
+      "h3": "text-xl sm:text-2xl font-semibold leading-relaxed",
+      "h4": "text-lg sm:text-xl font-medium leading-relaxed"
+    },
+    "body": "text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-200",
+    "labels": "text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400"
+  },
+  "colors": {
+    "theme_archetype": "Organic Health & Precision Clinical (Earthy Emerald & Slate)",
+    "palette": {
+      "primary": "#0f766e",
+      "primary_hover": "#115e59",
+      "primary_light": "#ccfbf1",
+      "secondary": "#334155",
+      "accent_emerald": "#10b981",
+      "accent_teal": "#0d9488",
+      "accent_amber": "#f59e0b",
+      "accent_rose": "#f43f5e",
+      "background_light": "#f8fafc",
+      "background_dark": "#0f172a",
+      "surface_light": "#ffffff",
+      "surface_dark": "#1e293b",
+      "border_light": "#e2e8f0",
+      "border_dark": "#334155"
+    },
+    "forbidden_colors": ["#1B93A4", "#7351B7"],
+    "rule": "Never use pure #000000. Tint all neutrals with slight slate blue tones."
+  },
+  "layout_and_spacing": {
+    "direction": "rtl",
+    "header_height": "h-16 md:h-20",
+    "sidebar_width": "w-64 md:w-72",
+    "container_padding": "p-4 sm:p-6 lg:p-8",
+    "grid_system": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6",
+    "card_padding": "p-5 sm:p-6",
+    "border_radius": "rounded-2xl"
+  },
+  "disclaimer_banner": {
+    "text_fa": "⚠️ توجه ویژه: این سامانه یک ابزار تشخیصی، تفسيري یا تجویزی نیست و جایگزین توصیه‌های پزشک معالج شما نمی‌باشد. این پلتفرم صرفاً جهت ثبت و مدیریت اطلاعات سلامت شخصی طراحی شده است.",
+    "style": "bg-amber-500/10 border-amber-500/30 text-amber-900 dark:text-amber-200 p-3 sm:p-4 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-3"
+  },
+  "image_urls": {
+    "doctor_patient_consultation": "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwyfHxtZWRpY2FsJTIwaGVhbHRoY2FyZSUyMHBhdGllbnQlMjBkb2N0b3IlMjB0aHlyb2lkJTIwY29uc3VsdGF0aW9ufGVufDB8fHx8MTc5Mzc5MzUwOXww&ixlib=rb-4.1.0&q=85",
+    "doctor_writing_notes": "https://images.unsplash.com/photo-1758691463198-dc663b8a64e4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHw0fHxtZWRpY2FsJTIwaGVhbHRoY2FyZSUyMHBhdGllbnQlMjBkb2N0b3IlMjB0aHlyb2lkJTIwY29uc3VsdGF0aW9ufGVufDB8fHx8MTc5Mzc5MzUwOXww&ixlib=rb-4.1.0&q=85",
+    "doctor_chart": "https://images.unsplash.com/photo-1758691461990-03b49d969495?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwxfHxtZWRpY2FsJTIwaGVhbHRoY2FyZSUyMHBhdGllbnQlMjBkb2N0b3IlMjB0aHlyb2lkJTIwY29uc3VsdGF0aW9ufGVufDB8fHx8MTc5Mzc5MzUwOXww&ixlib=rb-4.1.0&q=85",
+    "doctor_office_consult": "https://images.unsplash.com/photo-1758691462878-6edc3d3da1be?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwzfHxtZWRpY2FsJTIwaGVhbHRoY2FyZSUyMHBhdGllbnQlMjBkb2N0b3IlMjB0aHlyb2lkJTIwY29uc3VsdGF0aW9ufGVufDB8fHx8MTc5Mzc5MzUwOXww&ixlib=rb-4.1.0&q=85"
+  },
+  "component_instructions": {
+    "app_shell": "Include top bar with branding, role badge, role quick switcher for demo ease, Jalali current date header display, theme switcher, and persistent Medical Disclaimer banner.",
+    "patient_dashboard": "Feature medical profile overview card (Thyroid cancer type: Papillary/Follicular, Surgery date in Jalali, RAI history, Staging text TNM, Emergency contact). Display grid of 'Coming Soon' (به‌زودی) feature cards for Medications, Labs (TSH/FT4/Tg/Anti-Tg), Appointments, Symptoms, Timeline, Documents, Education.",
+    "patient_profile": "Tabbed interface with 'اطلاعات فردی' (Personal Info) and 'پرونده سرطان تیروئید' (Thyroid Cancer Profile). Form fields in Persian with validation and clear RTL layout.",
+    "physician_dashboard": "Searchable list of assigned patients with quick filters, status badges, and expandable/modal read-only view of patient's detailed medical profile.",
+    "admin_dashboard": "Tabbed management for: 1) Approval Queue (Pending Patient Registrations approve/reject), 2) User Management (Patients & Physicians status enable/disable), 3) Doctor Registration (Create Physician), 4) Doctor-Patient Assignment.",
+    "pending_state": "Friendly Persian pending approval banner for newly registered patients explaining that admin approval is required before accessing full medical features."
+  },
+  "accessibility_and_testing": {
+    "direction_attribute": "dir=\"rtl\"",
+    "test_id_rule": "ALL interactive and key data elements MUST include a data-testid attribute in kebab-case (e.g. data-testid=\"patient-profile-save-button\", data-testid=\"admin-approve-patient-btn\").",
+    "font_rendering": "Apply Vazirmatn font globally via index.html and Tailwind config."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Always set dir='rtl' on parent containers or document body.",
+    "Ensure all Lucide icons are appropriately flipped for RTL if directional (e.g., ChevronRight/Left, ArrowRight/Left).",
+    "Ensure input labels are right-aligned.",
+    "Include data-testid on all buttons, inputs, tabs, modals, badges, and table rows.",
+    "Do not use external AI emojis; use Lucide React icons.",
+    "Support Jalali date formats in Persian numbers/text."
+  ]
+}
