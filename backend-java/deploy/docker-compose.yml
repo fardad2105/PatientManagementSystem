@@ -1,0 +1,43 @@
+# Run from the repository root:  docker compose -f backend-java/deploy/docker-compose.yml --env-file backend-java/deploy/.env up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: thyrocare
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d thyrocare"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ../
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      DATABASE_URL: jdbc:postgresql://db:5432/thyrocare
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SEED_DEMO_DATA: ${SEED_DEMO_DATA}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      COOKIE_SECURE: ${COOKIE_SECURE}
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: backend-java/deploy/frontend.Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:

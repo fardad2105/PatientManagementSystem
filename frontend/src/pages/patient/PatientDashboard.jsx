@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Pill, FlaskConical, CalendarClock, HeartPulse, History, FileText, BookOpen, Stethoscope, ArrowLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { api, apiError } from "@/lib/api";
-import { toFa } from "@/lib/date";
+import { formatJalali, toFa } from "@/lib/date";
+import { LAB_TESTS } from "@/lib/labels";
 import { MedicalSummary } from "@/components/ProfileSummary";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
 
@@ -36,6 +37,34 @@ const CareTeam = ({ team }) => (
       </ul>
     )}
   </section>
+);
+
+const HealthSummary = ({ data }) => (
+  <div className="grid gap-4 lg:grid-cols-3">
+    <Link to="/patient/medications" data-testid="dashboard-medications-card"
+      className="rounded-2xl border border-slate-200 bg-white p-6 transition-colors hover:border-teal-300">
+      <div className="flex items-center gap-2 text-sm text-slate-500"><Pill className="h-4 w-4 text-teal-700" /> داروهای در حال مصرف</div>
+      <p className="mt-2 text-4xl font-extrabold text-slate-800" data-testid="dashboard-medications-active">{toFa(data.medications_active)}</p>
+      <p className="mt-2 text-xs text-slate-500" data-testid="dashboard-doses-missed">مصرف فراموش‌شده در ۷ روز گذشته: {toFa(data.doses_missed7d)}</p>
+    </Link>
+    <Link to="/patient/labs" data-testid="dashboard-labs-card"
+      className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 transition-colors hover:border-teal-300">
+      <div className="flex items-center gap-2 text-sm text-slate-500"><FlaskConical className="h-4 w-4 text-teal-700" /> آخرین نتایج ثبت‌شده</div>
+      {data.latest_labs.length === 0 ? (
+        <p className="mt-3 text-sm text-slate-500">هنوز نتیجه‌ای ثبت نشده است.</p>
+      ) : (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {data.latest_labs.map((l) => (
+            <div key={l.id} data-testid={`dashboard-latest-lab-${l.test_type}`}>
+              <p className="text-xs font-semibold text-teal-700">{LAB_TESTS[l.test_type].label}</p>
+              <p className="mt-1 text-lg font-bold text-slate-800">{toFa(l.value)} <span className="text-xs font-normal text-slate-500" dir="ltr">{l.unit}</span></p>
+              <p className="text-xs text-slate-400">{formatJalali(l.sample_date)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Link>
+  </div>
 );
 
 const ComingSoon = ({ modules }) => (
@@ -82,6 +111,7 @@ export default function PatientDashboard() {
           <Progress value={data.completeness} className="mt-4 h-2 [&>div]:bg-teal-600" />
         </section>
       </div>
+      <HealthSummary data={data} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2"><MedicalSummary medical={data.profile.medical} prefix="dashboard" /></div>
         <CareTeam team={data.care_team} />

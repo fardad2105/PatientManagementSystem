@@ -5,6 +5,38 @@ import { api, apiError } from "@/lib/api";
 import { toFa } from "@/lib/date";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
 import { MedicalSummary, PersonalSummary } from "@/components/ProfileSummary";
+import MedicationCard from "@/components/meds/MedicationCard";
+import LabChart from "@/components/labs/LabChart";
+import LabTable from "@/components/labs/LabTable";
+import { LAB_TESTS } from "@/lib/labels";
+
+const useSub = (id, path) =>
+  useQuery({ queryKey: ["physician-patient", id, path], queryFn: () => api.get(`/physician/patients/${id}/${path}`).then((r) => r.data), retry: false });
+
+const ClinicalRecords = ({ id }) => {
+  const meds = useSub(id, "medications");
+  const labs = useSub(id, "labs");
+  return (
+    <div className="space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" data-testid="physician-medications-section">
+        <h3 className="mb-4 text-base font-bold text-slate-800">داروها (ثبت بیمار)</h3>
+        {(meds.data || []).length === 0 ? <p className="text-sm text-slate-500">دارویی ثبت نشده است.</p> : (
+          <div className="grid gap-3 lg:grid-cols-2">{meds.data.map((m) => <MedicationCard key={m.id} med={m} readOnly onEdit={() => {}} onChanged={() => {}} />)}</div>
+        )}
+      </section>
+      {Object.entries(LAB_TESTS).map(([k, t]) => {
+        const rows = (labs.data || []).filter((r) => r.test_type === k);
+        return (
+          <section key={k} className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" data-testid={`physician-labs-${k}`}>
+            <h3 className="mb-4 text-base font-bold text-slate-800">{t.full}</h3>
+            {rows.length > 0 && <LabChart rows={rows} testId={`physician-lab-chart-${k}`} />}
+            <LabTable rows={rows} readOnly testId={`physician-lab-table-${k}`} />
+          </section>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function PhysicianPatientDetail() {
   const { id } = useParams();
@@ -44,6 +76,7 @@ export default function PhysicianPatientDetail() {
         <PersonalSummary personal={data.profile.personal} prefix="physician" />
         <MedicalSummary medical={data.profile.medical} prefix="physician" />
       </div>
+      <ClinicalRecords id={id} />
     </div>
   );
 }

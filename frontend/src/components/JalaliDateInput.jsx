@@ -9,14 +9,14 @@ import { CalendarDays } from "lucide-react";
 const toPicker = (iso) =>
   iso ? new DateObject({ date: iso, format: "YYYY-MM-DD", calendar: gregorian, locale: gregorian_en }).convert(persian, persian_fa) : null;
 
-export const JalaliDateInput = ({ value, onChange, testId, disabled }) => (
+export const JalaliDateInput = ({ value, onChange, testId, disabled, allowFuture = false }) => (
   <div className="relative" data-testid={testId}>
     <DatePicker
       calendar={persian}
       locale={persian_fa}
       value={toPicker(value)}
       disabled={disabled}
-      maxDate={new DateObject({ calendar: persian, locale: persian_fa })}
+      maxDate={allowFuture ? undefined : new DateObject({ calendar: persian, locale: persian_fa })}
       onChange={(d) => onChange(d ? new DateObject(d).convert(gregorian, gregorian_en).format("YYYY-MM-DD") : null)}
       calendarPosition="bottom-right"
       containerClassName="w-full"

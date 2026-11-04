@@ -17,4 +17,6 @@ export function formatJalali(iso, withTime = false) {
   return toFa(d.format(withTime ? "D MMMM YYYY، HH:mm" : "D MMMM YYYY"));
 }
 
+export const formatJalaliShort = (iso) => (iso ? toFa(dayjs(iso).calendar("jalali").locale("fa").format("YY/MM/DD")) : "");
+
 export const todayJalali = () => toFa(dayjs().calendar("jalali").locale("fa").format("dddd D MMMM YYYY"));
