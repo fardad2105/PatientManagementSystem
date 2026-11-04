@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Pill, Pencil, Check, X, ChevronDown } from "lucide-react";
+import { Pill, Pencil, Check, X, ChevronDown, Clock } from "lucide-react";
+import LogDialog from "@/components/meds/LogDialog";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { api, apiError } from "@/lib/api";
 import { formatJalali } from "@/lib/date";
@@ -32,6 +33,7 @@ const LogList = ({ medId, readOnly, onChanged }) => {
 
 export default function MedicationCard({ med, onEdit, onChanged, readOnly = false }) {
   const [open, setOpen] = useState(false);
+  const [logOpen, setLogOpen] = useState(false);
   const log = async (status) => {
     try {
       await api.post(`/patient/medications/${med.id}/logs`, { status });
@@ -80,6 +82,7 @@ export default function MedicationCard({ med, onEdit, onChanged, readOnly = fals
             <>
               <button onClick={() => log("taken")} data-testid={`medication-log-taken-${med.id}`} className="flex items-center gap-1.5 rounded-full bg-teal-700 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-800"><Check className="h-3.5 w-3.5" /> مصرف کردم</button>
               <button onClick={() => log("missed")} data-testid={`medication-log-missed-${med.id}`} className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50"><X className="h-3.5 w-3.5" /> فراموش کردم</button>
+              <button onClick={() => setLogOpen(true)} data-testid={`medication-log-custom-${med.id}`} className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-2 text-xs text-slate-600 hover:bg-slate-50"><Clock className="h-3.5 w-3.5" /> زمان دیگر</button>
             </>
           )}
           <button onClick={() => setOpen(!open)} data-testid={`medication-logs-toggle-${med.id}`} className="mr-auto flex items-center gap-1 px-2 text-xs text-teal-700">
@@ -88,6 +91,7 @@ export default function MedicationCard({ med, onEdit, onChanged, readOnly = fals
         </div>
       )}
       {open && <div className="mt-4 border-t border-slate-100 pt-4"><LogList medId={med.id} readOnly={readOnly} onChanged={onChanged} /></div>}
+      {logOpen && <LogDialog med={med} onClose={() => setLogOpen(false)} onSaved={onChanged} />}
     </article>
   );
 }

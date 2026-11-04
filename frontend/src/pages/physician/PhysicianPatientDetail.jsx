@@ -9,6 +9,7 @@ import MedicationCard from "@/components/meds/MedicationCard";
 import LabChart from "@/components/labs/LabChart";
 import LabTable from "@/components/labs/LabTable";
 import { LAB_TESTS } from "@/lib/labels";
+import AppointmentCard from "@/components/appointments/AppointmentCard";
 
 const useSub = (id, path) =>
   useQuery({ queryKey: ["physician-patient", id, path], queryFn: () => api.get(`/physician/patients/${id}/${path}`).then((r) => r.data), retry: false });
@@ -16,8 +17,15 @@ const useSub = (id, path) =>
 const ClinicalRecords = ({ id }) => {
   const meds = useSub(id, "medications");
   const labs = useSub(id, "labs");
+  const appts = useSub(id, "appointments");
   return (
     <div className="space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" data-testid="physician-appointments-section">
+        <h3 className="mb-4 text-base font-bold text-slate-800">نوبت‌های پیگیری (ثبت بیمار)</h3>
+        {(appts.data || []).length === 0 ? <p className="text-sm text-slate-500">نوبتی ثبت نشده است.</p> : (
+          <div className="grid gap-3 lg:grid-cols-2">{appts.data.map((a) => <AppointmentCard key={a.id} appt={a} readOnly onEdit={() => {}} onChanged={() => {}} />)}</div>
+        )}
+      </section>
       <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" data-testid="physician-medications-section">
         <h3 className="mb-4 text-base font-bold text-slate-800">داروها (ثبت بیمار)</h3>
         {(meds.data || []).length === 0 ? <p className="text-sm text-slate-500">دارویی ثبت نشده است.</p> : (

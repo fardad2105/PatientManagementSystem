@@ -77,6 +77,14 @@ public final class Repositories {
         long countByPatient_IdAndStatusAndTakenAtAfter(UUID patientId, String status, Instant after);
     }
 
+    public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
+        List<Appointment> findByPatient_IdOrderByScheduledAtAsc(UUID patientId);
+
+        List<Appointment> findByPatient_IdAndStatusAndScheduledAtAfterOrderByScheduledAtAsc(UUID patientId, String status, Instant after);
+
+        Optional<Appointment> findByIdAndPatient_Id(UUID id, UUID patientId);
+    }
+
     public interface LabResultRepository extends JpaRepository<LabResult, UUID> {
         List<LabResult> findByPatient_IdOrderBySampleDateAscCreatedAtAsc(UUID patientId);
 

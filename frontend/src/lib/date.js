@@ -20,3 +20,17 @@ export function formatJalali(iso, withTime = false) {
 export const formatJalaliShort = (iso) => (iso ? toFa(dayjs(iso).calendar("jalali").locale("fa").format("YYYY/MM")) : "");
 
 export const todayJalali = () => toFa(dayjs().calendar("jalali").locale("fa").format("dddd D MMMM YYYY"));
+
+export const splitLocal = (iso) => {
+  const d = dayjs(iso || undefined);
+  return { date: d.format("YYYY-MM-DD"), time: d.format("HH:mm") };
+};
+
+export const joinLocal = (date, time) => new Date(`${date}T${time || "00:00"}:00`).toISOString();
+
+export const splitLocal = (iso) => {
+  const d = dayjs(iso || undefined);
+  return { date: d.format("YYYY-MM-DD"), time: d.format("HH:mm") };
+};
+
+export const joinLocal = (date, time) => new Date(`${date}T${time || "00:00"}:00`).toISOString();

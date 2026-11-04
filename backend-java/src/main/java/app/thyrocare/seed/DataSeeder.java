@@ -23,6 +23,7 @@ public class DataSeeder implements CommandLineRunner {
     private final AssignmentRepository assignments;
     private final MedicationRepository meds;
     private final LabResultRepository labs;
+    private final AppointmentRepository appointmentRepo;
     private final PasswordEncoder encoder;
 
     @Value("${app.admin-email}")
@@ -97,6 +98,17 @@ public class DataSeeder implements CommandLineRunner {
             lab(patient, LabTestType.TSH, "0.9", "mIU/L", LocalDate.of(2024, 7, 10));
             lab(patient, LabTestType.TSH, "1.1", "mIU/L", LocalDate.of(2025, 1, 20));
             lab(patient, LabTestType.TG, "0.3", "ng/mL", LocalDate.of(2024, 7, 10));
+        }
+        if (appointmentRepo.findByPatient_IdOrderByScheduledAtAsc(patient.getId()).isEmpty()) {
+            Appointment a = new Appointment();
+            a.setPatient(patient);
+            a.setTitle("ویزیت پیگیری غدد (نمونه‌ی ساختگی)");
+            a.setAppointmentType("visit");
+            a.setScheduledAt(Instant.now().plus(java.time.Duration.ofDays(10)));
+            a.setLocation("کلینیک نمونه");
+            a.setPhysicianName("دکتر نمونه");
+            a.setRemindBeforeMinutes(10080);
+            appointmentRepo.save(a);
         }
     }
 

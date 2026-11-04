@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/patient")
 @RequiredArgsConstructor
 public class PatientController {
-    private static final List<String> UPCOMING = List.of("appointments", "symptoms", "timeline", "documents", "education");
+    private static final List<String> UPCOMING = List.of("symptoms", "timeline", "documents", "education");
 
     private final ProfileService profiles;
     private final MedicationService medications;
@@ -33,6 +33,7 @@ public class PatientController {
     private final MedicationRepository medRepo;
     private final MedicationLogRepository logRepo;
     private final AuditService audit;
+    private final app.thyrocare.service.AppointmentService appointmentService;
 
     @GetMapping("/profile")
     public ProfileBundle profile(@AuthenticationPrincipal User me) {
@@ -57,10 +58,12 @@ public class PatientController {
     public DashboardDto dashboard(@AuthenticationPrincipal User me) {
         ProfileBundle bundle = profiles.load(me.getId());
         Instant weekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+        List<AppointmentDto> upcoming = appointmentService.upcoming(me.getId());
         return new DashboardDto(UserDto.from(me), bundle, ProfileService.completeness(bundle), profiles.careTeam(me.getId()),
                 UPCOMING, medRepo.countByPatient_IdAndActiveTrue(me.getId()),
                 logRepo.countByPatient_IdAndStatusAndTakenAtAfter(me.getId(), "missed", weekAgo),
-                labs.latestPerType(me.getId()));
+                labs.latestPerType(me.getId()), upcoming.isEmpty() ? null : upcoming.get(0),
+                appointmentService.dueReminders(me.getId()));
     }
 
     // ---------- medications ----------

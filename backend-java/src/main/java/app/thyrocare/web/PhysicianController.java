@@ -32,6 +32,7 @@ public class PhysicianController {
     private final ProfileService profiles;
     private final MedicationService medications;
     private final LabService labs;
+    private final app.thyrocare.service.AppointmentService appointments;
 
     @GetMapping("/patients")
     @Transactional(readOnly = true)
@@ -59,6 +60,12 @@ public class PhysicianController {
     public List<MedicationDto> patientMedications(@PathVariable UUID id, @AuthenticationPrincipal User me) {
         access.assignedPatient(me, id, "view_medications");
         return medications.list(id);
+    }
+
+    @GetMapping("/patients/{id}/appointments")
+    public List<AppointmentDto> patientAppointments(@PathVariable UUID id, @AuthenticationPrincipal User me) {
+        access.assignedPatient(me, id, "view_appointments");
+        return appointments.list(id, "all");
     }
 
     @GetMapping("/patients/{id}/labs")

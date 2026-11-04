@@ -25,4 +25,16 @@ export const LAB_TESTS = {
 
 export const MED_LOG_STATUS = { taken: "مصرف شد", missed: "فراموش شد", skipped: "مصرف نشد" };
 
+export const APPT_TYPE = { visit: "ویزیت پزشک", lab: "آزمایش", imaging: "سونوگرافی / تصویربرداری", rai: "ید رادیواکتیو / اسکن", other: "سایر" };
+
+export const APPT_STATUS = { scheduled: "در پیش رو", done: "انجام شد", cancelled: "لغو شد", missed: "از دست رفت" };
+
+export const REMIND_OPTIONS = { none: "بدون یادآور", 60: "۱ ساعت قبل", 1440: "۱ روز قبل", 2880: "۲ روز قبل", 10080: "۱ هفته قبل" };
+
+export const APPT_TYPE = { visit: "ویزیت پزشک", lab: "آزمایش", imaging: "سونوگرافی / تصویربرداری", rai: "ید رادیواکتیو / اسکن", other: "سایر" };
+
+export const APPT_STATUS = { scheduled: "در پیش رو", done: "انجام شد", cancelled: "لغو شد", missed: "از دست رفت" };
+
+export const REMIND_OPTIONS = { none: "بدون یادآور", 60: "۱ ساعت قبل", 1440: "۱ روز قبل", 2880: "۲ روز قبل", 10080: "۱ هفته قبل" };
+
 export const label = (map, key) => (key ? map[key] || key : "—");

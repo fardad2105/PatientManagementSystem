@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Pill, FlaskConical, CalendarClock, HeartPulse, History, FileText, BookOpen, Stethoscope, ArrowLeft } from "lucide-react";
+import { RemindersList } from "@/components/appointments/RemindersCard";
+import { RemindersList } from "@/components/appointments/RemindersCard";
 import { Progress } from "@/components/ui/progress";
 import { api, apiError } from "@/lib/api";
 import { formatJalali, toFa } from "@/lib/date";
@@ -37,6 +39,36 @@ const CareTeam = ({ team }) => (
       </ul>
     )}
   </section>
+);
+
+const NextAppointment = ({ appt }) => (
+  <Link to="/patient/appointments" data-testid="dashboard-next-appointment"
+    className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition-colors hover:border-teal-300">
+    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700"><CalendarClock className="h-5 w-5" /></span>
+    <div>
+      <p className="text-xs text-slate-500">نوبت بعدی</p>
+      {appt ? (
+        <p className="text-sm font-semibold text-slate-800">{appt.title} — {formatJalali(appt.scheduled_at, true)}</p>
+      ) : (
+        <p className="text-sm text-slate-500">نوبت بعدی ثبت نشده است.</p>
+      )}
+    </div>
+  </Link>
+);
+
+const NextAppointment = ({ appt }) => (
+  <Link to="/patient/appointments" data-testid="dashboard-next-appointment"
+    className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition-colors hover:border-teal-300">
+    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-50 text-teal-700"><CalendarClock className="h-5 w-5" /></span>
+    <div>
+      <p className="text-xs text-slate-500">نوبت بعدی</p>
+      {appt ? (
+        <p className="text-sm font-semibold text-slate-800">{appt.title} — {formatJalali(appt.scheduled_at, true)}</p>
+      ) : (
+        <p className="text-sm text-slate-500">نوبت بعدی ثبت نشده است.</p>
+      )}
+    </div>
+  </Link>
 );
 
 const HealthSummary = ({ data }) => (
@@ -111,6 +143,10 @@ export default function PatientDashboard() {
           <Progress value={data.completeness} className="mt-4 h-2 [&>div]:bg-teal-600" />
         </section>
       </div>
+      {data.due_reminders.length > 0 && <RemindersList items={data.due_reminders} />}
+      <NextAppointment appt={data.next_appointment} />
+      {data.due_reminders.length > 0 && <RemindersList items={data.due_reminders} />}
+      <NextAppointment appt={data.next_appointment} />
       <HealthSummary data={data} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2"><MedicalSummary medical={data.profile.medical} prefix="dashboard" /></div>

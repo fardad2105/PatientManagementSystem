@@ -11,6 +11,8 @@ import PatientDashboard from "@/pages/patient/PatientDashboard";
 import PatientProfile from "@/pages/patient/PatientProfile";
 import Medications from "@/pages/patient/Medications";
 import Labs from "@/pages/patient/Labs";
+import Appointments from "@/pages/patient/Appointments";
+import Appointments from "@/pages/patient/Appointments";
 import PhysicianPatients from "@/pages/physician/PhysicianPatients";
 import PhysicianPatientDetail from "@/pages/physician/PhysicianPatientDetail";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -42,6 +44,8 @@ function App() {
           <Route path="/patient/profile" element={guarded(["patient"], PatientProfile)} />
           <Route path="/patient/medications" element={guarded(["patient"], Medications)} />
           <Route path="/patient/labs" element={guarded(["patient"], Labs)} />
+          <Route path="/patient/appointments" element={guarded(["patient"], Appointments)} />
+          <Route path="/patient/appointments" element={guarded(["patient"], Appointments)} />
           <Route path="/physician" element={guarded(["physician"], PhysicianPatients)} />
           <Route path="/physician/patients/:id" element={guarded(["physician"], PhysicianPatientDetail)} />
           <Route path="/admin" element={guarded(["admin"], AdminDashboard)} />

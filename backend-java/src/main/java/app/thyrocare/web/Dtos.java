@@ -174,7 +174,29 @@ public final class Dtos {
     public record DashboardDto(UserDto user, ProfileBundle profile, int completeness, List<CareTeamMember> careTeam,
                                List<String> upcomingModules, long medicationsActive,
                                @JsonProperty("doses_missed_7d") long dosesMissed7d,
-                               List<LabDto> latestLabs) {
+                               List<LabDto> latestLabs, AppointmentDto nextAppointment,
+                               List<AppointmentDto> dueReminders) {
+    }
+
+    // ---------- appointments ----------
+    public record AppointmentRequest(@NotBlank @Size(max = 120) String title,
+                                     @NotBlank @Pattern(regexp = "visit|lab|imaging|rai|other") String appointmentType,
+                                     @NotNull Instant scheduledAt, @Size(max = 200) String location,
+                                     @Size(max = 80) String physicianName, @Size(max = 500) String notes,
+                                     @Min(0) @Max(20160) Integer remindBeforeMinutes) {
+    }
+
+    public record AppointmentStatusRequest(@NotBlank @Pattern(regexp = "scheduled|done|cancelled|missed") String status) {
+    }
+
+    public record AppointmentDto(UUID id, String title, String appointmentType, Instant scheduledAt, String location,
+                                 String physicianName, String notes, String status, Integer remindBeforeMinutes,
+                                 Instant reminderAt, Instant createdAt, Instant updatedAt) {
+        public static AppointmentDto from(Appointment a) {
+            return new AppointmentDto(a.getId(), a.getTitle(), a.getAppointmentType(), a.getScheduledAt(), a.getLocation(),
+                    a.getPhysicianName(), a.getNotes(), a.getStatus(), a.getRemindBeforeMinutes(), a.reminderAt(),
+                    a.getCreatedAt(), a.getUpdatedAt());
+        }
     }
 
     public record PatientSummaryDto(UUID id, String name, String email, UserStatus status, String cancerType,

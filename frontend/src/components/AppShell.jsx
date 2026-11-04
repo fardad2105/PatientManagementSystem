@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical } from "lucide-react";
+import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS } from "@/lib/labels";
 import { todayJalali } from "@/lib/date";
@@ -10,6 +10,7 @@ const NAV = {
     { to: "/patient", label: "داشبورد", icon: LayoutDashboard, end: true, id: "dashboard" },
     { to: "/patient/medications", label: "داروها", icon: Pill, id: "medications" },
     { to: "/patient/labs", label: "آزمایش‌ها", icon: FlaskConical, id: "labs" },
+    { to: "/patient/appointments", label: "نوبت‌ها", icon: CalendarClock, id: "appointments" },
     { to: "/patient/profile", label: "پرونده من", icon: UserRound, id: "profile" },
   ],
   physician: [{ to: "/physician", label: "بیماران من", icon: Users, id: "patients" }],
@@ -51,7 +52,7 @@ export default function AppShell({ children }) {
             </NavLink>
           ))}
         </nav>
-        <p className="mt-auto text-xs leading-relaxed text-slate-400">نسخه‌ی پژوهشی — فاز ۲. فقط با داده‌های ساختگی آزمایش شود.</p>
+        <p className="mt-auto text-xs leading-relaxed text-slate-400">نسخه‌ی پژوهشی — فاز ۳. فقط با داده‌های ساختگی آزمایش شود.</p>
       </aside>
 
       <div className="flex-1 min-w-0 pb-24 lg:pb-0">
@@ -87,7 +88,7 @@ export default function AppShell({ children }) {
             end={it.end}
             data-testid={`bottom-nav-${it.id}`}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium ${isActive ? "text-teal-700" : "text-slate-500"}`
+              `flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium ${isActive ? "text-teal-700" : "text-slate-500"}`
             }
           >
             <it.icon className="h-5 w-5" />
