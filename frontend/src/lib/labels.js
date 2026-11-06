@@ -31,4 +31,29 @@ export const APPT_STATUS = { scheduled: "در پیش رو", done: "انجام ش
 
 export const REMIND_OPTIONS = { none: "بدون یادآور", 60: "۱ ساعت قبل", 1440: "۱ روز قبل", 2880: "۲ روز قبل", 10080: "۱ هفته قبل" };
 
+export const SYMPTOMS = {
+  fatigue: "خستگی",
+  palpitations: "تپش قلب",
+  anxiety: "اضطراب",
+  weight_change: "تغییر وزن",
+  neck_pain: "درد گردن",
+  swallowing: "مشکل بلع",
+  hair_loss: "ریزش مو",
+  cold_sensitivity: "حساسیت به سرما",
+  mood_swings: "خلق و خو",
+};
+
+export const MOODS = { good: "خوب", fair: "متوسط", bad: "بد", very_bad: "خیلی بد" };
+
+export const severityLabel = (v) =>
+  v === 0 ? "ندارم" : v <= 2 ? "خیلی خفیف" : v <= 4 ? "خفیف" : v <= 6 ? "متوسط" : v <= 8 ? "شدید" : "بسیار شدید";
+
+export const FLAG = {
+  above: "بالاتر از محدوده تعیین‌شده",
+  below: "پایین‌تر از محدوده تعیین‌شده",
+  in_range: "در محدوده تعیین‌شده",
+  no_target: "محدوده تعیین نشده",
+  unit_mismatch: "واحد متفاوت با محدوده",
+};
+
 export const label = (map, key) => (key ? map[key] || key : "—");

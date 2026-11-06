@@ -10,6 +10,8 @@ import LabChart from "@/components/labs/LabChart";
 import LabTable from "@/components/labs/LabTable";
 import { LAB_TESTS } from "@/lib/labels";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
+import { TargetsEditor } from "@/components/physician/TargetsEditor";
+import { SymptomTrend } from "@/components/symptoms/SymptomTrend";
 
 const useSub = (id, path) =>
   useQuery({ queryKey: ["physician-patient", id, path], queryFn: () => api.get(`/physician/patients/${id}/${path}`).then((r) => r.data), retry: false });
@@ -18,8 +20,11 @@ const ClinicalRecords = ({ id }) => {
   const meds = useSub(id, "medications");
   const labs = useSub(id, "labs");
   const appts = useSub(id, "appointments");
+  const symptoms = useSub(id, "symptoms");
   return (
     <div className="space-y-4">
+      <TargetsEditor patientId={id} />
+      <SymptomTrend entries={symptoms.data || []} testId="physician-symptom-trend" />
       <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" data-testid="physician-appointments-section">
         <h3 className="mb-4 text-base font-bold text-slate-800">نوبت‌های پیگیری (ثبت بیمار)</h3>
         {(appts.data || []).length === 0 ? <p className="text-sm text-slate-500">نوبتی ثبت نشده است.</p> : (
@@ -54,7 +59,7 @@ export default function PhysicianPatientDetail() {
     retry: false,
   });
   const back = (
-    <Link to="/physician" className="inline-flex items-center gap-2 text-sm text-teal-700 hover:underline" data-testid="physician-back-link">
+    <Link to="/physician/patients" className="inline-flex items-center gap-2 text-sm text-green-700 hover:underline" data-testid="physician-back-link">
       <ArrowRight className="h-4 w-4" /> بازگشت به فهرست بیماران
     </Link>
   );

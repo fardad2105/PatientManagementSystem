@@ -1,51 +1,48 @@
 package app.thyrocare.web;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import app.thyrocare.domain.*;
-import app.thyrocare.repository.Repositories.AssignmentRepository;
-import app.thyrocare.repository.Repositories.MedicalProfileRepository;
-import app.thyrocare.repository.Repositories.UserRepository;
+import app.thyrocare.domain.User;
 import app.thyrocare.service.AccessService;
+import app.thyrocare.service.AppointmentService;
+import app.thyrocare.service.AuditService;
 import app.thyrocare.service.LabService;
 import app.thyrocare.service.MedicationService;
+import app.thyrocare.service.PhysicianInsightService;
 import app.thyrocare.service.ProfileService;
 import app.thyrocare.web.Dtos.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-/** Read-only access to the patients an admin has assigned to the calling physician. */
+/** Access to the patients an admin has assigned to the calling physician. Only target ranges are writable. */
 @RestController
 @RequestMapping("/api/physician")
 @RequiredArgsConstructor
 public class PhysicianController {
-    private final AssignmentRepository assignments;
-    private final UserRepository users;
-    private final MedicalProfileRepository medicalRepo;
     private final AccessService access;
     private final ProfileService profiles;
     private final MedicationService medications;
     private final LabService labs;
-    private final app.thyrocare.service.AppointmentService appointments;
+    private final AppointmentService appointments;
+    private final PhysicianInsightService insights;
+    private final AuditService audit;
+
+    @GetMapping("/dashboard")
+    public PhysicianDashboardDto dashboard(@AuthenticationPrincipal User me) {
+        return insights.dashboard(me);
+    }
 
     @GetMapping("/patients")
-    @Transactional(readOnly = true)
     public List<PatientSummaryDto> patients(@AuthenticationPrincipal User me) {
-        List<UUID> ids = assignments.findByPhysician_Id(me.getId()).stream().map(a -> a.getPatient().getId()).toList();
-        Map<UUID, MedicalProfile> medical = medicalRepo.findByPatient_IdIn(ids).stream()
-                .collect(Collectors.toMap(m -> m.getPatient().getId(), Function.identity()));
-        return users.findByIdInAndRoleAndStatusOrderByNameAsc(ids, Role.patient, UserStatus.active).stream().map(p -> {
-            MedicalProfile m = medical.get(p.getId());
-            return new PatientSummaryDto(p.getId(), p.getName(), p.getEmail(), p.getStatus(),
-                    m == null ? null : m.getCancerType(), m == null ? null : m.getSurgeryDate(),
-                    m == null ? null : m.getUpdatedAt());
-        }).toList();
+        return insights.patients(me);
+    }
+
+    @GetMapping("/alerts")
+    public List<PatientSummaryDto> alerts(@AuthenticationPrincipal User me) {
+        return insights.alerts(me);
     }
 
     @GetMapping("/patients/{id}")
@@ -72,5 +69,20 @@ public class PhysicianController {
     public List<LabDto> patientLabs(@PathVariable UUID id, @AuthenticationPrincipal User me) {
         access.assignedPatient(me, id, "view_labs");
         return labs.list(id, null);
+    }
+
+    @GetMapping("/patients/{id}/targets")
+    public List<TargetDto> targets(@PathVariable UUID id, @AuthenticationPrincipal User me) {
+        access.assignedPatient(me, id, "view_targets");
+        return insights.targets(me, id);
+    }
+
+    @PutMapping("/patients/{id}/targets")
+    public List<TargetDto> saveTargets(@PathVariable UUID id, @Valid @RequestBody TargetsRequest body,
+                                       @AuthenticationPrincipal User me) {
+        access.assignedPatient(me, id, "update_targets");
+        List<TargetDto> saved = insights.saveTargets(me, id, body.targets());
+        audit.log(me, "update", "lab_targets", id);
+        return saved;
     }
 }

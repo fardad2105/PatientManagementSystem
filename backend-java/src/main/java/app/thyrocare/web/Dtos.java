@@ -3,11 +3,14 @@ package app.thyrocare.web;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import app.thyrocare.domain.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 /** Request/response records. JSON uses snake_case via the global Jackson naming strategy. */
@@ -200,7 +203,56 @@ public final class Dtos {
     }
 
     public record PatientSummaryDto(UUID id, String name, String email, UserStatus status, String cancerType,
-                                    LocalDate surgeryDate, Instant profileUpdatedAt) {
+                                    LocalDate surgeryDate, Instant profileUpdatedAt, LocalDate birthDate,
+                                    String stagingText, List<FlaggedLab> latestLabs, List<FlaggedLab> outOfRange,
+                                    Instant nextAppointment, Instant lastVisit) {
+    }
+
+    // ---------- physician target ranges (neutral flags only) ----------
+    public record TargetRequest(@NotNull LabTestType testType, @NotBlank String unit,
+                                @DecimalMin("0") @Digits(integer = 8, fraction = 4) BigDecimal targetLow,
+                                @DecimalMin("0") @Digits(integer = 8, fraction = 4) BigDecimal targetHigh) {
+    }
+
+    public record TargetsRequest(@NotNull @Size(max = 4) List<@Valid TargetRequest> targets) {
+    }
+
+    public record TargetDto(LabTestType testType, String unit, BigDecimal targetLow, BigDecimal targetHigh,
+                            Instant updatedAt) {
+        public static TargetDto from(LabTarget t) {
+            return new TargetDto(t.getTestType(), t.getUnit(),
+                    t.getTargetLow() == null ? null : t.getTargetLow().stripTrailingZeros(),
+                    t.getTargetHigh() == null ? null : t.getTargetHigh().stripTrailingZeros(), t.getUpdatedAt());
+        }
+    }
+
+    /** flag: above | below | in_range | no_target | unit_mismatch */
+    public record FlaggedLab(LabDto lab, String flag, TargetDto target) {
+    }
+
+    public record PhysicianTodayAppt(AppointmentDto appointment, UUID patientId, String patientName) {
+    }
+
+    public record PhysicianRecentLab(FlaggedLab item, UUID patientId, String patientName) {
+    }
+
+    public record PhysicianDashboardDto(UserDto physician, long activePatients, long todayAppointments,
+                                        long needsAttention, List<PatientSummaryDto> attention,
+                                        List<PhysicianTodayAppt> today, List<PhysicianRecentLab> recentLabs) {
+    }
+
+    // ---------- symptoms ----------
+    public record SymptomRequest(@NotNull @PastOrPresent LocalDate entryDate,
+                                 @NotBlank @Pattern(regexp = "good|fair|bad|very_bad") String mood,
+                                 @NotNull Map<String, Integer> scores, @Size(max = 500) String notes) {
+    }
+
+    public record SymptomDto(UUID id, LocalDate entryDate, String mood, Map<String, Integer> scores, String notes,
+                             Instant updatedAt) {
+        public static SymptomDto from(SymptomEntry e) {
+            return new SymptomDto(e.getId(), e.getEntryDate(), e.getMood(), new HashMap<>(e.getScores()), e.getNotes(),
+                    e.getUpdatedAt());
+        }
     }
 
     public record PatientBasic(UUID id, String name, String email, String phone, UserStatus status) {

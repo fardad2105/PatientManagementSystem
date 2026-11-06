@@ -31,6 +31,8 @@ public final class Repositories {
 
     public interface PatientProfileRepository extends JpaRepository<PatientProfile, UUID> {
         Optional<PatientProfile> findByPatient_Id(UUID patientId);
+
+        List<PatientProfile> findByPatient_IdIn(Collection<UUID> patientIds);
     }
 
     public interface MedicalProfileRepository extends JpaRepository<MedicalProfile, UUID> {
@@ -83,6 +85,10 @@ public final class Repositories {
         List<Appointment> findByPatient_IdAndStatusAndScheduledAtAfterOrderByScheduledAtAsc(UUID patientId, String status, Instant after);
 
         Optional<Appointment> findByIdAndPatient_Id(UUID id, UUID patientId);
+
+        List<Appointment> findByPatient_IdInAndScheduledAtBetweenOrderByScheduledAtAsc(Collection<UUID> patientIds, Instant from, Instant to);
+
+        Optional<Appointment> findFirstByPatient_IdAndStatusOrderByScheduledAtDesc(UUID patientId, String status);
     }
 
     public interface LabResultRepository extends JpaRepository<LabResult, UUID> {
@@ -93,5 +99,23 @@ public final class Repositories {
         Optional<LabResult> findByIdAndPatient_Id(UUID id, UUID patientId);
 
         Optional<LabResult> findFirstByPatient_IdAndTestTypeOrderBySampleDateDescCreatedAtDesc(UUID patientId, LabTestType type);
+
+        List<LabResult> findTop8ByPatient_IdInOrderBySampleDateDescCreatedAtDesc(Collection<UUID> patientIds);
+    }
+
+    public interface LabTargetRepository extends JpaRepository<LabTarget, UUID> {
+        List<LabTarget> findByPhysician_Id(UUID physicianId);
+
+        List<LabTarget> findByPhysician_IdAndPatient_Id(UUID physicianId, UUID patientId);
+
+        Optional<LabTarget> findByPhysician_IdAndPatient_IdAndTestType(UUID physicianId, UUID patientId, LabTestType type);
+    }
+
+    public interface SymptomEntryRepository extends JpaRepository<SymptomEntry, UUID> {
+        List<SymptomEntry> findByPatient_IdAndEntryDateGreaterThanEqualOrderByEntryDateAsc(UUID patientId, java.time.LocalDate from);
+
+        Optional<SymptomEntry> findByPatient_IdAndEntryDate(UUID patientId, java.time.LocalDate date);
+
+        Optional<SymptomEntry> findByIdAndPatient_Id(UUID id, UUID patientId);
     }
 }

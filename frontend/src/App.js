@@ -13,6 +13,9 @@ import Medications from "@/pages/patient/Medications";
 import Labs from "@/pages/patient/Labs";
 import Appointments from "@/pages/patient/Appointments";
 import PhysicianPatients from "@/pages/physician/PhysicianPatients";
+import PhysicianDashboard from "@/pages/physician/PhysicianDashboard";
+import PhysicianAlerts from "@/pages/physician/PhysicianAlerts";
+import Symptoms from "@/pages/patient/Symptoms";
 import PhysicianPatientDetail from "@/pages/physician/PhysicianPatientDetail";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import { homeFor } from "@/lib/api";
@@ -44,7 +47,10 @@ function App() {
           <Route path="/patient/medications" element={guarded(["patient"], Medications)} />
           <Route path="/patient/labs" element={guarded(["patient"], Labs)} />
           <Route path="/patient/appointments" element={guarded(["patient"], Appointments)} />
-          <Route path="/physician" element={guarded(["physician"], PhysicianPatients)} />
+          <Route path="/patient/symptoms" element={guarded(["patient"], Symptoms)} />
+          <Route path="/physician" element={guarded(["physician"], PhysicianDashboard)} />
+          <Route path="/physician/patients" element={guarded(["physician"], PhysicianPatients)} />
+          <Route path="/physician/alerts" element={guarded(["physician"], PhysicianAlerts)} />
           <Route path="/physician/patients/:id" element={guarded(["physician"], PhysicianPatientDetail)} />
           <Route path="/admin" element={guarded(["admin"], AdminDashboard)} />
           <Route path="*" element={<Navigate to="/" replace />} />

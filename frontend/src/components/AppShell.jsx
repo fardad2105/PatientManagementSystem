@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bell as BellIcon } from "lucide-react";
 import { api } from "@/lib/api";
-import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock } from "lucide-react";
+import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock, HeartPulse, TriangleAlert, Stethoscope } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS } from "@/lib/labels";
 import { toFa, todayJalali } from "@/lib/date";
@@ -14,32 +14,46 @@ const NAV = {
     { to: "/patient/medications", label: "داروها", icon: Pill, id: "medications" },
     { to: "/patient/labs", label: "آزمایش‌ها", icon: FlaskConical, id: "labs" },
     { to: "/patient/appointments", label: "نوبت‌ها", icon: CalendarClock, id: "appointments" },
+    { to: "/patient/symptoms", label: "ثبت علائم", icon: HeartPulse, id: "symptoms" },
     { to: "/patient/profile", label: "پرونده من", icon: UserRound, id: "profile" },
   ],
-  physician: [{ to: "/physician", label: "بیماران من", icon: Users, id: "patients" }],
+  physician: [
+    { to: "/physician", label: "داشبورد پزشک", short: "داشبورد", icon: LayoutDashboard, end: true, id: "dashboard" },
+    { to: "/physician/patients", label: "بیماران من", icon: Users, id: "patients" },
+    { to: "/physician/alerts", label: "هشدارهای درمانی", short: "هشدارها", icon: TriangleAlert, id: "alerts", badge: true },
+  ],
   admin: [{ to: "/admin", label: "مدیریت سامانه", icon: ShieldCheck, id: "admin" }],
 };
 
-const navCls = ({ isActive }) =>
+const PHYS = "physician";
+const navCls = (role) => ({ isActive }) =>
   `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-    isActive ? "bg-teal-700 text-white shadow-sm" : "text-slate-600 hover:bg-teal-50 hover:text-teal-800"
+    isActive
+      ? role === PHYS ? "bg-green-50 text-green-800 font-bold" : "bg-teal-700 text-white shadow-sm"
+      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
   }`;
 
-const Brand = () => (
+const Brand = ({ role }) => (
   <div className="flex items-center gap-2" data-testid="app-brand">
-    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-700 text-white">
-      <Activity className="h-5 w-5" />
+    <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${role === PHYS ? "bg-green-700" : "bg-teal-700"}`}>
+      {role === PHYS ? <Stethoscope className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
     </span>
     <span>
-      <span className="block text-lg font-extrabold text-slate-800">تیروئیدکر</span>
-      <span className="block text-[11px] text-slate-400">سامانه مدیریت درمان</span>
+      <span className="block text-lg font-extrabold text-slate-800">{role === PHYS ? "پنل پزشک" : "تیروئیدکر"}</span>
+      <span className="block text-[11px] text-slate-400">{role === PHYS ? "تیروئیدکر" : "سامانه مدیریت درمان"}</span>
     </span>
   </div>
 );
 
-const Avatar = ({ name, className = "h-10 w-10" }) => (
-  <span className={`flex shrink-0 items-center justify-center rounded-full bg-teal-700 font-bold text-white ${className}`}>{(name || "?").trim()[0]}</span>
+const Avatar = ({ name, role, className = "h-10 w-10" }) => (
+  <span className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${role === PHYS ? "bg-green-700" : "bg-teal-700"} ${className}`}>{(name || "?").trim()[0]}</span>
 );
+
+const AlertsBadge = () => {
+  const { data = [] } = useQuery({ queryKey: ["physician-alerts"], queryFn: () => api.get("/physician/alerts").then((r) => r.data), refetchInterval: 120_000 });
+  if (!data.length) return null;
+  return <span className="mr-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white" data-testid="nav-alerts-count">{toFa(data.length)}</span>;
+};
 
 const Bell = () => {
   const { data = [] } = useQuery({ queryKey: ["reminders"], queryFn: () => api.get("/patient/reminders").then((r) => r.data), refetchInterval: 60_000 });
@@ -65,19 +79,20 @@ export default function AppShell({ children }) {
   return (
     <div className="min-h-screen bg-slate-50 lg:flex">
       <aside className="hidden lg:flex w-72 shrink-0 flex-col gap-8 border-l border-slate-200 bg-white p-6 sticky top-0 h-screen">
-        <Brand />
-        <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3" data-testid="sidebar-user-card">
-          <Avatar name={user.name} />
+        <Brand role={user.role} />
+        <div className={`flex items-center gap-3 rounded-2xl p-3 ${user.role === PHYS ? "bg-green-50" : "bg-slate-50"}`} data-testid="sidebar-user-card">
+          <Avatar name={user.name} role={user.role} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-800" data-testid="header-user-name">{user.name}</p>
-            <p className="text-xs text-slate-500" data-testid="header-role-badge">{ROLE_LABELS[user.role]}</p>
+            <p className="text-xs text-slate-500" data-testid="header-role-badge">{user.specialty || ROLE_LABELS[user.role]}</p>
           </div>
         </div>
         <nav className="flex flex-col gap-1">
           {items.map((it) => (
-            <NavLink key={it.to} to={it.to} end={it.end} className={navCls} data-testid={`sidebar-nav-${it.id}`}>
+            <NavLink key={it.to} to={it.to} end={it.end} className={navCls(user.role)} data-testid={`sidebar-nav-${it.id}`}>
               <it.icon className="h-5 w-5" />
-              {it.label}
+              {it.short || it.label}
+              {it.badge && <AlertsBadge />}
             </NavLink>
           ))}
         </nav>
@@ -88,14 +103,14 @@ export default function AppShell({ children }) {
 
       <div className="flex-1 min-w-0 pb-24 lg:pb-0">
         <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center justify-between gap-3 border-b border-slate-200 bg-white/80 px-4 sm:px-6 lg:px-8 backdrop-blur-lg">
-          <div className="lg:hidden"><Brand /></div>
+          <div className="lg:hidden"><Brand role={user.role} /></div>
           <div className="hidden lg:block">
             <p className="text-xl font-extrabold text-slate-800" data-testid="header-page-title">{current?.label || ""}</p>
             <p className="text-xs text-slate-400" data-testid="header-today">{todayJalali()}</p>
           </div>
           <div className="flex items-center gap-2">
             {user.role === "patient" && <Bell />}
-            <span className="hidden lg:flex"><Avatar name={user.name} className="h-9 w-9 text-sm" /></span>
+            <span className="hidden lg:flex"><Avatar name={user.name} role={user.role} className="h-9 w-9 text-sm" /></span>
             <button onClick={onLogout} data-testid="logout-button" aria-label="خروج"
               className="rounded-full p-2 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 lg:hidden">
               <LogOut className="h-5 w-5" />
@@ -116,11 +131,11 @@ export default function AppShell({ children }) {
             end={it.end}
             data-testid={`bottom-nav-${it.id}`}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-medium ${isActive ? "text-teal-700" : "text-slate-500"}`
+              `flex flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? (user.role === PHYS ? "text-green-700" : "text-teal-700") : "text-slate-500"}`
             }
           >
             <it.icon className="h-5 w-5" />
-            {it.label}
+            {it.short || it.label}
           </NavLink>
         ))}
       </nav>
