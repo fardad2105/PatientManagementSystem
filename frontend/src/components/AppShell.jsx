@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bell as BellIcon } from "lucide-react";
 import { api } from "@/lib/api";
-import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock, HeartPulse, TriangleAlert, Stethoscope } from "lucide-react";
+import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock, HeartPulse, TriangleAlert, Stethoscope, BookOpen, Eye } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS } from "@/lib/labels";
 import { toFa, todayJalali } from "@/lib/date";
@@ -22,31 +22,41 @@ const NAV = {
     { to: "/physician/patients", label: "بیماران من", icon: Users, id: "patients" },
     { to: "/physician/alerts", label: "هشدارهای درمانی", short: "هشدارها", icon: TriangleAlert, id: "alerts", badge: true },
   ],
-  admin: [{ to: "/admin", label: "مدیریت سامانه", icon: ShieldCheck, id: "admin" }],
+  admin: [
+    { to: "/admin", label: "داشبورد مدیریت", short: "داشبورد", icon: LayoutDashboard, end: true, id: "admin" },
+    { to: "/admin/users", label: "مدیریت کاربران", short: "کاربران", icon: Users, id: "users" },
+    { to: "/admin/education", label: "محتوای آموزشی", short: "محتوا", icon: BookOpen, id: "education" },
+    { to: "/admin/audit", label: "Audit Log", icon: Eye, id: "audit" },
+  ],
 };
 
 const PHYS = "physician";
+const THEME = {
+  patient: { active: "bg-teal-700 text-white shadow-sm", solid: "bg-teal-700", soft: "bg-slate-50", text: "text-teal-700", Icon: Activity, title: "تیروئیدکر", sub: "سامانه مدیریت درمان" },
+  physician: { active: "bg-green-50 text-green-800 font-bold", solid: "bg-green-700", soft: "bg-green-50", text: "text-green-700", Icon: Stethoscope, title: "پنل پزشک", sub: "تیروئیدکر" },
+  admin: { active: "bg-purple-50 text-purple-800 font-bold", solid: "bg-purple-700", soft: "bg-purple-50", text: "text-purple-700", Icon: ShieldCheck, title: "پنل مدیریت", sub: "تیروئیدکر" },
+};
+const theme = (role) => THEME[role] || THEME.patient;
 const navCls = (role) => ({ isActive }) =>
   `flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 ${
-    isActive
-      ? role === PHYS ? "bg-green-50 text-green-800 font-bold" : "bg-teal-700 text-white shadow-sm"
-      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+    isActive ? theme(role).active : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
   }`;
 
-const Brand = ({ role }) => (
-  <div className="flex items-center gap-2" data-testid="app-brand">
-    <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${role === PHYS ? "bg-green-700" : "bg-teal-700"}`}>
-      {role === PHYS ? <Stethoscope className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
-    </span>
-    <span>
-      <span className="block text-lg font-extrabold text-slate-800">{role === PHYS ? "پنل پزشک" : "تیروئیدکر"}</span>
-      <span className="block text-[11px] text-slate-400">{role === PHYS ? "تیروئیدکر" : "سامانه مدیریت درمان"}</span>
-    </span>
-  </div>
-);
+const Brand = ({ role }) => {
+  const t = theme(role);
+  return (
+    <div className="flex items-center gap-2" data-testid="app-brand">
+      <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-white ${t.solid}`}><t.Icon className="h-5 w-5" /></span>
+      <span>
+        <span className="block text-lg font-extrabold text-slate-800">{t.title}</span>
+        <span className="block text-[11px] text-slate-400">{t.sub}</span>
+      </span>
+    </div>
+  );
+};
 
 const Avatar = ({ name, role, className = "h-10 w-10" }) => (
-  <span className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${role === PHYS ? "bg-green-700" : "bg-teal-700"} ${className}`}>{(name || "?").trim()[0]}</span>
+  <span className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${theme(role).solid} ${className}`}>{(name || "?").trim()[0]}</span>
 );
 
 const AlertsBadge = () => {
@@ -80,7 +90,7 @@ export default function AppShell({ children }) {
     <div className="min-h-screen bg-slate-50 lg:flex">
       <aside className="hidden lg:flex w-72 shrink-0 flex-col gap-8 border-l border-slate-200 bg-white p-6 sticky top-0 h-screen">
         <Brand role={user.role} />
-        <div className={`flex items-center gap-3 rounded-2xl p-3 ${user.role === PHYS ? "bg-green-50" : "bg-slate-50"}`} data-testid="sidebar-user-card">
+        <div className={`flex items-center gap-3 rounded-2xl p-3 ${theme(user.role).soft}`} data-testid="sidebar-user-card">
           <Avatar name={user.name} role={user.role} />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-800" data-testid="header-user-name">{user.name}</p>
@@ -131,7 +141,7 @@ export default function AppShell({ children }) {
             end={it.end}
             data-testid={`bottom-nav-${it.id}`}
             className={({ isActive }) =>
-              `relative flex flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? (user.role === PHYS ? "text-green-700" : "text-teal-700") : "text-slate-500"}`
+              `relative flex flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? theme(user.role).text : "text-slate-500"}`
             }
           >
             <it.icon className="h-5 w-5" />

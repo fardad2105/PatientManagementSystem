@@ -2,6 +2,23 @@ export const ROLE_LABELS = { patient: "بیمار", physician: "پزشک", admin
 
 export const STATUS_LABELS = { pending: "در انتظار تأیید", active: "فعال", rejected: "ردشده", disabled: "غیرفعال" };
 
+const ACTIONS = {
+  login: "ورود به سامانه", login_failed: "ورود ناموفق", logout: "خروج", register: "ثبت‌نام", upsert: "ثبت", create: "ایجاد", update: "ویرایش",
+  delete: "حذف", view: "مشاهده پرونده", assign: "تخصیص پزشک", unassign: "لغو تخصیص", create_physician: "ثبت پزشک", reset_password: "بازنشانی رمز",
+  change_password: "تغییر رمز", set_status: "تغییر وضعیت حساب", update_user: "ویرایش کاربر", delete_user: "حذف کاربر", create_content: "ایجاد محتوا",
+  update_content: "ویرایش محتوا", delete_content: "حذف محتوا", approve: "تأیید ثبت‌نام", reject: "رد ثبت‌نام",
+};
+const RESOURCES = {
+  user: "حساب کاربری", symptom_entry: "ماژول علائم", lab_result: "ماژول آزمایش", medication: "ماژول دارو", medication_log: "ثبت مصرف دارو",
+  appointment: "نوبت‌ها", lab_targets: "محدوده هدف", physician_assignment: "تخصیص‌ها", education_content: "محتوای آموزشی", patient: "پرونده بیمار",
+  patient_profile: "پرونده شخصی", medical_profile: "پرونده پزشکی",
+};
+export const actionLabel = (a) => {
+  const base = (a || "").split(":")[0];
+  return ACTIONS[base] || (base.startsWith("view") ? "مشاهده پرونده" : base);
+};
+export const resourceLabel = (r) => RESOURCES[r] || r;
+
 export const GENDER = { male: "مرد", female: "زن", other: "سایر" };
 
 export const CANCER_TYPE = { papillary: "پاپیلاری", follicular: "فولیکولار", unknown: "نامشخص" };

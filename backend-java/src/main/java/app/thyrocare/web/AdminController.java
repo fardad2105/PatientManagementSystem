@@ -11,6 +11,7 @@ import app.thyrocare.domain.*;
 import app.thyrocare.repository.Repositories.AssignmentRepository;
 import app.thyrocare.repository.Repositories.AuditLogRepository;
 import app.thyrocare.repository.Repositories.UserRepository;
+import app.thyrocare.service.AdminInsightService;
 import app.thyrocare.service.AuditService;
 import app.thyrocare.web.Dtos.*;
 import jakarta.validation.Valid;
@@ -31,6 +32,36 @@ public class AdminController {
     private final AuditLogRepository auditLogs;
     private final AuditService audit;
     private final PasswordEncoder encoder;
+    private final AdminInsightService insights;
+
+    @GetMapping("/dashboard")
+    public AdminDashboardDto dashboard() {
+        return insights.dashboard();
+    }
+
+    @PatchMapping("/users/{id}")
+    @Transactional
+    public UserDto update(@PathVariable UUID id, @Valid @RequestBody UserUpdateRequest body, @AuthenticationPrincipal User admin) {
+        User target = find(id);
+        if (target.getRole() == Role.admin && !target.getId().equals(admin.getId())) {
+            throw ApiException.forbidden("اطلاعات مدیر دیگر قابل تغییر نیست");
+        }
+        target.setName(body.name().trim());
+        target.setPhone(body.phone() == null || body.phone().isBlank() ? null : body.phone());
+        if (target.getRole() == Role.physician) target.setSpecialty(body.specialty());
+        audit.log(admin, "update_user", "user", id);
+        return UserDto.from(target);
+    }
+
+    @DeleteMapping("/users/{id}")
+    @Transactional
+    public Map<String, Boolean> deleteUser(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        User target = find(id);
+        if (target.getRole() == Role.admin) throw ApiException.forbidden("حساب مدیر قابل حذف نیست");
+        users.delete(target);
+        audit.log(admin, "delete_user", "user", id, "allow", target.getEmail());
+        return Map.of("ok", true);
+    }
 
     @GetMapping("/stats")
     public StatsDto stats() {

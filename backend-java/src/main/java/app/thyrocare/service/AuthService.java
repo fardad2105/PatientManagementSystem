@@ -69,6 +69,7 @@ public class AuthService {
         if (u.getStatus() == UserStatus.rejected) throw ApiException.forbidden("درخواست ثبت‌نام شما توسط مدیر سیستم رد شده است");
         if (u.getStatus() == UserStatus.disabled) throw ApiException.forbidden("حساب کاربری شما غیرفعال شده است");
         if (attempt != null) attempts.delete(attempt);
+        u.setLastLoginAt(now);
         audit.log(u, "login", "user", u.getId());
         return u;
     }

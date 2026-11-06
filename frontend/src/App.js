@@ -18,6 +18,9 @@ import PhysicianAlerts from "@/pages/physician/PhysicianAlerts";
 import Symptoms from "@/pages/patient/Symptoms";
 import PhysicianPatientDetail from "@/pages/physician/PhysicianPatientDetail";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminEducation from "@/pages/admin/AdminEducation";
+import AdminAudit from "@/pages/admin/AdminAudit";
 import { homeFor } from "@/lib/api";
 
 const Home = () => {
@@ -53,6 +56,9 @@ function App() {
           <Route path="/physician/alerts" element={guarded(["physician"], PhysicianAlerts)} />
           <Route path="/physician/patients/:id" element={guarded(["physician"], PhysicianPatientDetail)} />
           <Route path="/admin" element={guarded(["admin"], AdminDashboard)} />
+          <Route path="/admin/users" element={guarded(["admin"], AdminUsers)} />
+          <Route path="/admin/education" element={guarded(["admin"], AdminEducation)} />
+          <Route path="/admin/audit" element={guarded(["admin"], AdminAudit)} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

@@ -23,10 +23,10 @@ public final class Dtos {
 
     // ---------- auth & users ----------
     public record UserDto(UUID id, String email, String name, Role role, UserStatus status, String phone,
-                          String specialty, Instant createdAt, Instant statusChangedAt) {
+                          String specialty, Instant createdAt, Instant statusChangedAt, Instant lastLoginAt) {
         public static UserDto from(User u) {
             return new UserDto(u.getId(), u.getEmail(), u.getName(), u.getRole(), u.getStatus(), u.getPhone(),
-                    u.getSpecialty(), u.getCreatedAt(), u.getStatusChangedAt());
+                    u.getSpecialty(), u.getCreatedAt(), u.getStatusChangedAt(), u.getLastLoginAt());
         }
     }
 
@@ -281,12 +281,62 @@ public final class Dtos {
                                 Instant createdAt) {
     }
 
-    public record AuditDto(UUID id, UUID actorId, String actorEmail, String actorRole, String action,
-                           String resourceType, String resourceId, String outcome, String details, Instant createdAt) {
+    public record AuditDto(UUID id, UUID actorId, String actorEmail, String actorRole, String actorName, String action,
+                           String resourceType, String resourceId, String outcome, String details, String ipAddress,
+                           Instant createdAt) {
         public static AuditDto from(AuditLog a) {
-            return new AuditDto(a.getId(), a.getActorId(), a.getActorEmail(), a.getActorRole(), a.getAction(),
-                    a.getResourceType(), a.getResourceId(), a.getOutcome(), a.getDetails(), a.getCreatedAt());
+            return new AuditDto(a.getId(), a.getActorId(), a.getActorEmail(), a.getActorRole(), a.getActorName(),
+                    a.getAction(), a.getResourceType(), a.getResourceId(), a.getOutcome(), a.getDetails(),
+                    a.getIpAddress(), a.getCreatedAt());
         }
+    }
+
+    // ---------- admin dashboard ----------
+    public record DayCount(LocalDate date, long count) {
+    }
+
+    public record AdminDashboardDto(long patientsActive, long patientsPending, long physiciansActive, long loginsToday,
+                                    long failedLoginsToday, long contentPublished, long contentTotal,
+                                    boolean databaseHealthy, long databaseLatencyMs, Instant serverTime,
+                                    long registrationsBase, List<DayCount> registrations, List<DayCount> logins,
+                                    List<AuditDto> recent) {
+    }
+
+    public record UserUpdateRequest(@NotBlank @Size(min = 2, max = 80) String name,
+                                    @Pattern(regexp = PHONE, message = "شماره تلفن نامعتبر است") String phone,
+                                    @Size(max = 80) String specialty) {
+    }
+
+    // ---------- education content (admin) ----------
+    public record EducationRequest(@NotBlank @Size(max = 160) String title,
+                                   @NotBlank @Pattern(regexp = "article|video|infographic", message = "نوع محتوا نامعتبر است") String contentType,
+                                   @Size(max = 300) String summary, @Size(max = 20000) String body,
+                                   @Size(max = 500) @Pattern(regexp = "^https?://.+", message = "نشانی باید با http یا https شروع شود") String mediaUrl,
+                                   @NotBlank @Pattern(regexp = "draft|in_review|published", message = "وضعیت نامعتبر است") String status,
+                                   @Size(max = 120) String reviewerName) {
+    }
+
+    public record EducationDto(UUID id, String title, String contentType, String summary, String body, String mediaUrl,
+                               String status, String reviewerName, Instant reviewedAt, int viewCount,
+                               Instant createdAt, Instant updatedAt) {
+        public static EducationDto from(EducationContent e) {
+            return new EducationDto(e.getId(), e.getTitle(), e.getContentType(), e.getSummary(), e.getBody(),
+                    e.getMediaUrl(), e.getStatus(), e.getReviewerName(), e.getReviewedAt(), e.getViewCount(),
+                    e.getCreatedAt(), e.getUpdatedAt());
+        }
+    }
+
+    // ---------- medication week view ----------
+    /** status: taken | missed | none | future | inactive */
+    public record WeekDayDto(LocalDate date, String status, String time) {
+    }
+
+    public record MedicationWeekDto(UUID medicationId, String name, String doseText, String frequencyText,
+                                    List<WeekDayDto> days, int takenDays, int expectedDays) {
+    }
+
+    public record MedicationWeekResponse(LocalDate weekStart, LocalDate weekEnd, LocalDate today,
+                                         Integer adherencePercent, List<MedicationWeekDto> medications) {
     }
 
     public record StatsDto(long patientsActive, long patientsPending, long physiciansActive, long assignments) {

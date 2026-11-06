@@ -5,6 +5,7 @@ import { api, apiError } from "@/lib/api";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
 import MedicationCard from "@/components/meds/MedicationCard";
 import MedicationDialog from "@/components/meds/MedicationDialog";
+import { WeeklyAdherence } from "@/components/meds/WeeklyAdherence";
 
 export default function Medications() {
   const qc = useQueryClient();
@@ -13,6 +14,7 @@ export default function Medications() {
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["medications"] });
     qc.invalidateQueries({ queryKey: ["med-logs"] });
+    qc.invalidateQueries({ queryKey: ["med-week"] });
     qc.invalidateQueries({ queryKey: ["patient-dashboard"] });
   };
   if (error) return <p className="rounded-2xl bg-rose-50 p-6 text-sm text-rose-700" data-testid="medications-error">{apiError(error)}</p>;
@@ -30,6 +32,7 @@ export default function Medications() {
           <Plus className="h-4 w-4" /> افزودن دارو
         </button>
       </div>
+      {data.length > 0 && <WeeklyAdherence />}
       {data.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center" data-testid="medications-empty">
           <Pill className="h-10 w-10 text-slate-300" />

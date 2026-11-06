@@ -26,6 +26,10 @@ public final class Repositories {
 
         long countByRoleAndStatus(Role role, UserStatus status);
 
+        long countByRoleAndCreatedAtBefore(Role role, Instant before);
+
+        List<User> findByRoleAndCreatedAtGreaterThanEqual(Role role, Instant from);
+
         List<User> findByIdInAndRoleAndStatusOrderByNameAsc(Collection<UUID> ids, Role role, UserStatus status);
     }
 
@@ -53,6 +57,16 @@ public final class Repositories {
 
     public interface AuditLogRepository extends JpaRepository<AuditLog, UUID> {
         List<AuditLog> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+        long countByActionAndCreatedAtGreaterThanEqual(String action, Instant from);
+
+        List<AuditLog> findByActionAndCreatedAtGreaterThanEqual(String action, Instant from);
+    }
+
+    public interface EducationContentRepository extends JpaRepository<EducationContent, UUID> {
+        List<EducationContent> findAllByOrderByUpdatedAtDesc();
+
+        long countByStatus(String status);
     }
 
     public interface LoginAttemptRepository extends JpaRepository<LoginAttempt, String> {
@@ -77,6 +91,8 @@ public final class Repositories {
         Optional<MedicationLog> findByIdAndPatient_Id(UUID id, UUID patientId);
 
         long countByPatient_IdAndStatusAndTakenAtAfter(UUID patientId, String status, Instant after);
+
+        List<MedicationLog> findByPatient_IdAndTakenAtGreaterThanEqualAndTakenAtLessThanOrderByTakenAtAsc(UUID patientId, Instant from, Instant to);
     }
 
     public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {

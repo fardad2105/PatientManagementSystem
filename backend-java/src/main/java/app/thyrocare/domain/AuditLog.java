@@ -35,6 +35,9 @@ public class AuditLog {
 
     private String details;
 
+    private String actorName;
+    private String ipAddress;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 }

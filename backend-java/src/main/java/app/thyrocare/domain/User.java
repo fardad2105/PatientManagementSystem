@@ -46,6 +46,7 @@ public class User {
 
     private Instant statusChangedAt;
     private Instant passwordChangedAt;
+    private Instant lastLoginAt;
 
     public boolean isBlocked() {
         return status == UserStatus.disabled || status == UserStatus.rejected;
