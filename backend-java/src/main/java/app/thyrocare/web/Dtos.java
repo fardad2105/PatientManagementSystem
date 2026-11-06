@@ -242,7 +242,7 @@ public final class Dtos {
     }
 
     // ---------- symptoms ----------
-    public record SymptomRequest(@NotNull @PastOrPresent LocalDate entryDate,
+    public record SymptomRequest(@NotNull LocalDate entryDate,
                                  @NotBlank @Pattern(regexp = "good|fair|bad|very_bad") String mood,
                                  @NotNull Map<String, Integer> scores, @Size(max = 500) String notes) {
     }

@@ -35,6 +35,9 @@ public class SymptomService {
 
     @Transactional
     public SymptomDto save(UUID patientId, SymptomRequest r) {
+        if (r.entryDate().isAfter(LocalDate.now(PhysicianInsightService.ZONE))) {
+            throw ApiException.badRequest("تاریخ نمی‌تواند در آینده باشد");
+        }
         for (Map.Entry<String, Integer> s : r.scores().entrySet()) {
             if (!KEYS.contains(s.getKey())) throw ApiException.badRequest("علامت نامعتبر است");
             if (s.getValue() == null || s.getValue() < 0 || s.getValue() > 10) {
