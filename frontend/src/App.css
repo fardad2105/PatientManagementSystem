@@ -8,20 +8,20 @@
 
 .rmdp-day.rmdp-selected span:not(.highlight),
 .rmdp-week-day {
-    background-color: #0f766e;
+    background-color: #1565c0;
     color: #fff;
 }
 
 .rmdp-week-day {
     background-color: transparent;
-    color: #0f766e;
+    color: #1565c0;
 }
 
 .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
-    background-color: #ccfbf1;
-    color: #115e59;
+    background-color: #dbeafe;
+    color: #1e40af;
 }
 
 .rmdp-arrow-container:hover {
-    background-color: #0f766e;
+    background-color: #1565c0;
 }

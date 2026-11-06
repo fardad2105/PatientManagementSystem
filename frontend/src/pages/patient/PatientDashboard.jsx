@@ -5,7 +5,7 @@ import { RemindersList } from "@/components/appointments/RemindersCard";
 import { Progress } from "@/components/ui/progress";
 import { api, apiError } from "@/lib/api";
 import { formatJalali, toFa } from "@/lib/date";
-import { LAB_TESTS } from "@/lib/labels";
+import { CANCER_TYPE, LAB_TESTS, label } from "@/lib/labels";
 import { MedicalSummary } from "@/components/ProfileSummary";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
 
@@ -110,15 +110,22 @@ export default function PatientDashboard() {
   return (
     <div className="space-y-6" data-testid="patient-dashboard">
       <div className="grid gap-4 lg:grid-cols-3">
-        <section className="lg:col-span-2 rounded-2xl bg-teal-800 p-6 sm:p-8 text-white">
-          <p className="text-sm text-teal-100">خوش آمدید</p>
-          <h1 className="mt-1 text-3xl sm:text-4xl font-extrabold tracking-tight" data-testid="dashboard-greeting">{data.user.name}</h1>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-teal-50/90">
-            پرونده‌ی خود را کامل کنید تا اطلاعات شما برای پزشک معالج، منظم و در دسترس باشد.
-          </p>
-          <Link to="/patient/profile" data-testid="dashboard-edit-profile-link"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-teal-800 transition-transform hover:-translate-x-1">
-            تکمیل پرونده <ArrowLeft className="h-4 w-4" />
+        <section className="lg:col-span-2 flex flex-col gap-5 rounded-2xl bg-gradient-to-l from-blue-600 to-blue-800 p-6 sm:p-8 text-white sm:flex-row sm:items-center sm:justify-between" data-testid="dashboard-hero">
+          <div>
+            <p className="text-sm text-blue-100">خوش آمدید</p>
+            <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold" data-testid="dashboard-greeting">{data.user.name} عزیز</h1>
+            <p className="mt-2 text-sm text-blue-50/90">
+              {data.profile.medical?.cancer_type ? `سرطان تیروئید ${label(CANCER_TYPE, data.profile.medical.cancer_type)}` : "پرونده‌ی خود را کامل کنید"}
+            </p>
+            <Link to="/patient/profile" data-testid="dashboard-edit-profile-link"
+              className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-800 transition-transform hover:-translate-x-1">
+              پرونده من <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </div>
+          <Link to="/patient/appointments" data-testid="dashboard-next-appointment" className="rounded-2xl bg-white/15 px-6 py-4 text-center backdrop-blur transition-colors hover:bg-white/25">
+            <p className="text-xs text-blue-100">ویزیت بعدی</p>
+            <p className="mt-1 text-lg font-extrabold">{data.next_appointment ? formatJalali(data.next_appointment.scheduled_at) : "ثبت نشده"}</p>
+            {data.next_appointment?.physician_name && <p className="mt-1 text-xs text-blue-100">{data.next_appointment.physician_name}</p>}
           </Link>
         </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-6" data-testid="profile-completeness-card">
@@ -128,7 +135,6 @@ export default function PatientDashboard() {
         </section>
       </div>
       {data.due_reminders.length > 0 && <RemindersList items={data.due_reminders} />}
-      <NextAppointment appt={data.next_appointment} />
       <HealthSummary data={data} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2"><MedicalSummary medical={data.profile.medical} prefix="dashboard" /></div>

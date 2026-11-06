@@ -38,7 +38,7 @@ export default function LabChart({ rows, testId }) {
             <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={formatJalaliShort} tick={{ fontSize: 11, fill: "#64748b" }} />
             <YAxis tickFormatter={(v) => toFa(v)} tick={{ fontSize: 11, fill: "#64748b" }} width={44} />
             <Tooltip content={<ChartTip />} />
-            <Line type="linear" dataKey="value" stroke="#0f766e" strokeWidth={2.5} isAnimationActive={false} dot={{ r: 4, fill: "#0f766e" }} />
+            <Line type="linear" dataKey="value" stroke="#1565c0" strokeWidth={2.5} isAnimationActive={false} dot={{ r: 4, fill: "#1565c0" }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
