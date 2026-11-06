@@ -210,8 +210,8 @@ public final class Dtos {
 
     // ---------- physician target ranges (neutral flags only) ----------
     public record TargetRequest(@NotNull LabTestType testType, @NotBlank String unit,
-                                @DecimalMin("0") @Digits(integer = 8, fraction = 4) BigDecimal targetLow,
-                                @DecimalMin("0") @Digits(integer = 8, fraction = 4) BigDecimal targetHigh) {
+                                @DecimalMin(value = "0", message = "مقدار نمی‌تواند منفی باشد") @Digits(integer = 8, fraction = 4, message = "عدد نامعتبر است") BigDecimal targetLow,
+                                @DecimalMin(value = "0", message = "مقدار نمی‌تواند منفی باشد") @Digits(integer = 8, fraction = 4, message = "عدد نامعتبر است") BigDecimal targetHigh) {
     }
 
     public record TargetsRequest(@NotNull @Size(max = 4) List<@Valid TargetRequest> targets) {
@@ -243,8 +243,9 @@ public final class Dtos {
 
     // ---------- symptoms ----------
     public record SymptomRequest(@NotNull LocalDate entryDate,
-                                 @NotBlank @Pattern(regexp = "good|fair|bad|very_bad") String mood,
-                                 @NotNull Map<String, Integer> scores, @Size(max = 500) String notes) {
+                                 @NotBlank @Pattern(regexp = "good|fair|bad|very_bad", message = "حال کلی نامعتبر است") String mood,
+                                 @NotNull Map<String, Integer> scores,
+                                 @Size(max = 500, message = "یادداشت حداکثر ۵۰۰ کاراکتر است") String notes) {
     }
 
     public record SymptomDto(UUID id, LocalDate entryDate, String mood, Map<String, Integer> scores, String notes,

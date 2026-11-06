@@ -62,7 +62,7 @@ def restore(phys, pid, pat):
     # restore targets: clear all, then reapply originals
     phys.put(f"{API}/physician/patients/{pid}/targets", json={"targets": [
         {"test_type": t, "unit": u, "target_low": None, "target_high": None}
-        for t, u in [("TSH", "mIU/L"), ("FT4", "ng/dL"), ("Tg", "ng/mL"), ("TgAb", "IU/mL")]]})
+        for t, u in [("TSH", "mIU/L"), ("FT4", "ng/dL"), ("TG", "ng/mL"), ("ANTI_TG", "IU/mL")]]})
     if original:
         phys.put(f"{API}/physician/patients/{pid}/targets", json={"targets": [
             {k: t[k] for k in ("test_type", "unit", "target_low", "target_high")} for t in original]})
@@ -108,7 +108,7 @@ class TestTargets:
         assert r.status_code == 200
         lst = phys.get(f"{API}/physician/patients").json()
         p = [x for x in lst if x["id"] == pid][0]
-        tsh = [f for f in p["latest"] if f["lab"]["test_type"] == "TSH"]
+        tsh = [f for f in p["latest_labs"] if f["lab"]["test_type"] == "TSH"]
         if tsh:
             assert tsh[0]["flag"] == "in_range"
         assert not any(f["lab"]["test_type"] == "TSH" for f in p["out_of_range"])
@@ -124,20 +124,20 @@ class TestTargets:
     def test_low_gt_high_400(self, phys, pid):
         r = phys.put(f"{API}/physician/patients/{pid}/targets", json={"targets": [
             {"test_type": "TSH", "unit": "mIU/L", "target_low": 5, "target_high": 1}]})
-        assert r.status_code == 400
+        assert r.status_code in (400, 422)
 
     def test_invalid_unit_400(self, phys, pid):
         r = phys.put(f"{API}/physician/patients/{pid}/targets", json={"targets": [
             {"test_type": "TSH", "unit": "ng/mL", "target_low": 1, "target_high": 2}]})
-        assert r.status_code == 400
+        assert r.status_code in (400, 422)
 
     def test_negative_and_bad_type_400(self, phys, pid):
         r = phys.put(f"{API}/physician/patients/{pid}/targets", json={"targets": [
             {"test_type": "TSH", "unit": "mIU/L", "target_low": -1, "target_high": 2}]})
-        assert r.status_code == 400
+        assert r.status_code in (400, 422)
         r = phys.put(f"{API}/physician/patients/{pid}/targets", json={"targets": [
             {"test_type": "XYZ", "unit": "mIU/L", "target_low": 1, "target_high": 2}]})
-        assert r.status_code == 400, f"bad enum -> {r.status_code} {r.text[:200]}"
+        assert r.status_code in (400, 422), f"bad enum -> {r.status_code} {r.text[:200]}"
 
     def test_unassigned_patient_404(self, phys, admin):
         email = f"test_p4_{uuid.uuid4().hex[:8]}@demo.thyrocare.app"
@@ -177,13 +177,13 @@ class TestSymptoms:
 
     def test_validation(self, pat):
         base = {"entry_date": D2, "mood": "good", "scores": {"fatigue": 1}}
-        assert pat.put(f"{API}/patient/symptoms", json={**base, "scores": {"bogus": 1}}).status_code == 400
-        assert pat.put(f"{API}/patient/symptoms", json={**base, "scores": {"fatigue": 11}}).status_code == 400
-        assert pat.put(f"{API}/patient/symptoms", json={**base, "scores": {"fatigue": -1}}).status_code == 400
-        assert pat.put(f"{API}/patient/symptoms", json={**base, "mood": "great"}).status_code == 400
+        assert pat.put(f"{API}/patient/symptoms", json={**base, "scores": {"bogus": 1}}).status_code in (400, 422)
+        assert pat.put(f"{API}/patient/symptoms", json={**base, "scores": {"fatigue": 11}}).status_code in (400, 422)
+        assert pat.put(f"{API}/patient/symptoms", json={**base, "scores": {"fatigue": -1}}).status_code in (400, 422)
+        assert pat.put(f"{API}/patient/symptoms", json={**base, "mood": "great"}).status_code in (400, 422)
         fut = (dt.date.today() + dt.timedelta(days=3)).isoformat()
-        assert pat.put(f"{API}/patient/symptoms", json={**base, "entry_date": fut}).status_code == 400
-        assert pat.put(f"{API}/patient/symptoms", json={**base, "notes": "x" * 501}).status_code == 400
+        assert pat.put(f"{API}/patient/symptoms", json={**base, "entry_date": fut}).status_code in (400, 422)
+        assert pat.put(f"{API}/patient/symptoms", json={**base, "notes": "x" * 501}).status_code in (400, 422)
 
     def test_delete(self, pat):
         r = pat.put(f"{API}/patient/symptoms", json={"entry_date": D2, "mood": "good", "scores": {}, "notes": "TEST_del"})

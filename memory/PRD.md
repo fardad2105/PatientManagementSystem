@@ -23,12 +23,14 @@ Later request (2026-11-04, Persian): change the Phase 1 backend to Java + Spring
 
 - 2026-11-04: Phase 3 (Java) — appointments CRUD + status (scheduled/done/cancelled/missed, overdue prompt), in-app reminders (window before visit, dashboard + appointments page), next appointment on dashboard, physician read-only appointments; medication intake log with chosen Jalali date + 24h Persian time (future rejected). Flyway V3. iteration_3: backend 43/43, UI flows pass
 
+- 2026-11-06: Phase 4 (Java + React) per deck S26-S30, S39-S43 — physician dashboard (hero stats, patients needing attention = latest lab outside physician-defined target range, today's visits, recent labs), /physician/patients (search, range filter, TSH/Tg, last/next visit), /physician/alerts + nav badge, TargetsEditor in patient detail (lab_targets table, PUT /physician/patients/{id}/targets); patient /patient/symptoms (mood, 9 symptoms 0-10 sliders, one entry/day upsert, trend chart), physician read-only symptom trend. Flyway V4. iteration_5: backend 14/14, frontend fixes (targets editor race, NaN validation, mobile badge, chart axis) verified by screenshot
+- Note: preview pod reset wipes PostgreSQL; restart = start postgres, recreate role/db, `supervisorctl stop backend`, `PORT=8001 COOKIE_SECURE=true ./run-local.sh`
+
 ## Backlog
 - 2026-11-06: User supplied a 48-slide design deck (/app/design_ref). Decisions: keep React (CRA) now, Next.js later; clinical alerts only vs. physician-defined target ranges, no advice/prognosis text; first restyle existing pages. Done: blue theme, role-select login, new app shell (brand تیروئیدکر, user card, header title/date/bell), dashboard hero (iteration_4: 100%)
-- P1 next per deck: physician-defined lab target ranges + neutral out-of-range flags (physician dashboard S39-S43), physician green / admin purple accents, admin dashboard S44-S48, reminders page S22, medication adherence week view S19
-- P1 new modules per deck: education S9-S11, treatment history S12-S13, pathology S14-S18, nodule tracking S31-S34 (TI-RADS shown as recorded, no FNA advice), symptoms S26-S30, self-assessment S35-S36, settings S38
+- P1 next per deck: admin purple accents, admin dashboard S44-S48, reminders page S22, medication adherence week view S19
+- P1 new modules per deck: education S9-S11, treatment history S12-S13, pathology S14-S18, nodule tracking S31-S34 (TI-RADS shown as recorded, no FNA advice), self-assessment S35-S36, settings S38
 - P2: Next.js migration (self-hosted)
-- P1: symptom tracking (remaining from original Phase 3 plan)
 - P2: push/email reminders when app is closed (needs FCM/email provider)
 - P1 Phase 4: treatment timeline + documents (file storage)
 - P1 Phase 5: education CMS with specialist review; physician notes / physician-entered labs

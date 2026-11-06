@@ -5,7 +5,7 @@ import { SYMPTOMS } from "@/lib/labels";
 import dayjs from "dayjs";
 
 const COLORS = { fatigue: "#1565c0", palpitations: "#d32f2f", anxiety: "#7b1fa2", weight_change: "#00897b", neck_pain: "#2e7d32", swallowing: "#5d4037", hair_loss: "#f57c00", cold_sensitivity: "#0288d1", mood_swings: "#c2185b" };
-const shortDate = (t) => toFa(dayjs(t).calendar("jalali").locale("fa").format("D MMM"));
+const shortDate = (t) => toFa(dayjs(t).calendar("jalali").locale("fa").format("M/D"));
 
 const Tip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;

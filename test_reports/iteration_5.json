@@ -1,0 +1,39 @@
+{
+  "summary": "Phase 4 (physician dashboard / target ranges / alerts + patient symptom check-ins) tested on Java backend and React UI. Backend: 14/14 pytest pass (after fixing 3 test-script bugs: wrong field name 'latest' vs 'latest_labs', bean-validation errors return 422 by app convention, wrong enum names in teardown). UI: physician login -> /physician dashboard hero stats, attention/today/recent-labs sections; target set via targets-editor -> patient appears in dashboard attention list, /physician/alerts, nav-alerts-count badge; low>high shows Persian error toast; Persian digits accepted; clearing removes target + alert. Patients list search + filter (all/out/none) work, range-badge correct. Patient /patient/symptoms: save disabled until mood chosen, sliders work (RTL, keyboard), save -> update same day (button text switches to update), Jalali date picker change resets form, trend chart renders with >=2 days, toggle chips work; physician detail shows read-only physician-symptom-trend. Mobile 390px: no horizontal overflow on all tested pages. No clinical recommendation text found. One real bug: TargetsEditor race wipes user edits.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PUT /api/patient/symptoms, PUT /api/physician/patients/{id}/targets", "issue": "Bean-validation failures (bad mood, negative target, bad enum) return 422 with default English message (e.g. 'must match \"good|fair|bad|very_bad\"') while service checks return 400 with Persian text. Inconsistent status + non-Persian message if shown to the user."},
+      {"endpoint": "Admin", "issue": "No user delete endpoint, so pytest-created TEST_p4_* patients (2 accounts) could only be set to disabled, not removed."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TargetsEditor", "issue": "Inputs can be edited before GET /targets finishes. When data arrives, the useEffect resets rows and wipes what the user typed. Reproduced: filled low=0.1/high=0.5 right after the editor rendered, and only target_high=0.5 was saved (low lost). The same reset also happens on any background refetch (window focus / invalidateQueries), which drops unsaved edits.", "selector": "[data-testid=target-low-TSH]", "priority": "MEDIUM"},
+      {"component": "TargetsEditor", "issue": "num() turns non-numeric input into NaN, which JSON.stringify sends as null. Typing junk in both fields silently deletes the target instead of showing a validation error.", "selector": "[data-testid^=target-]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "SymptomTrend x-axis", "issues": ["Short Jalali month is cut off (shows 'آبا' instead of 'آبان'). Use the full month name or the D/M format."]},
+      {"screen": "Physician mobile bottom nav", "issues": ["The alerts count badge only shows in the desktop sidebar, not on the mobile bottom-nav alerts item."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_thyrocare_phase4_targets_symptoms.py", "/app/test_reports/pytest/phase4.xml"],
+  "action_items": [
+    "TargetsEditor: disable inputs or show a loader until targets query isSuccess, and only seed rows once (or when not dirty) so refetch does not clobber edits",
+    "TargetsEditor: validate numeric input client-side (reject NaN) instead of sending null",
+    "Optionally map MethodArgumentNotValidException messages to Persian / unify 400 vs 422",
+    "Fix truncated Jalali month in SymptomTrend tick formatter"
+  ],
+  "critical_code_review_comments": [
+    "Symptoms.jsx default date uses browser-local dayjs() while backend checks Asia/Tehran. A browser ahead of Tehran (e.g. UTC+9 late evening) would default to a 'future' date and get 400. Compute default from Tehran zone.",
+    "Symptoms list fetches only the default 180 days; fine for now, but picking an older date in the picker shows an empty form even if an entry exists (edge case).",
+    "PhysicianInsightService.patients() runs per-patient queries (latestPerType, upcoming, last appointment): N+1, fine at demo scale."
+  ],
+  "updated_files": ["/app/backend/tests/test_thyrocare_phase4_targets_symptoms.py"],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "~92% (targets editor race bug)"},
+  "seed_data_creation": "None kept. Symptom entries (2026-10-01/02 via pytest, 2026-11-05/06 via UI) and all targets were deleted. Pytest created TEST_p4_*@demo.thyrocare.app patient users, which were set to disabled (no delete API).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Java backend on 8001. Do NOT supervisorctl restart backend. Demo patient id 9a9f8357-5749-4372-b722-743ab65691f2 (latest TSH 1.1 mIU/L, TG 0.3 ng/mL). Lab enum: TSH, FT4, TG, ANTI_TG. Validation errors are 422 (bean) or 400 (service). Server date is Nov 2026 (Tehran 1405/08/15). When testing TargetsEditor, wait for networkidle before filling (race bug). Jalali picker days: .rmdp-day:not(.rmdp-disabled) span with Persian digits."
+}

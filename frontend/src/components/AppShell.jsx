@@ -131,11 +131,12 @@ export default function AppShell({ children }) {
             end={it.end}
             data-testid={`bottom-nav-${it.id}`}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? (user.role === PHYS ? "text-green-700" : "text-teal-700") : "text-slate-500"}`
+              `relative flex flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? (user.role === PHYS ? "text-green-700" : "text-teal-700") : "text-slate-500"}`
             }
           >
             <it.icon className="h-5 w-5" />
             {it.short || it.label}
+            {it.badge && <span className="absolute -top-1 left-0"><AlertsBadge /></span>}
           </NavLink>
         ))}
       </nav>
