@@ -30,7 +30,7 @@ const Med = ({ m, today }) => (
   <div className="space-y-3" data-testid={`week-med-${m.medication_id}`}>
     <p className="flex items-baseline justify-between gap-2 text-sm">
       <span className="font-bold text-slate-800">{m.name} <span className="font-normal text-slate-500">· {m.dose_text}</span></span>
-      <span className="text-xs text-slate-500" data-testid={`week-med-count-${m.medication_id}`}>{toFa(m.taken_days)} از {toFa(m.expected_days)} روز</span>
+      <span className="shrink-0 whitespace-nowrap text-xs text-slate-500" data-testid={`week-med-count-${m.medication_id}`}>{toFa(m.taken_days)} از {toFa(m.expected_days)} روز</span>
     </p>
     <div className="grid grid-cols-7 gap-1.5 sm:gap-3">
       {m.days.map((d, i) => <Tile key={d.date} d={d} i={i} today={today} testId={`week-day-${m.medication_id}-${i}`} />)}

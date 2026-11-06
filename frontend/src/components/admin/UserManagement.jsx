@@ -36,7 +36,7 @@ const Row = ({ u, onEdit, onReset, onStatus, onDelete }) => (
         <span className="font-semibold text-slate-800">{u.name}</span>
       </span>
     </td>
-    <td className="px-4 py-3 text-xs text-slate-500" dir="ltr">{code(u)}</td>
+    <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500" dir="ltr">{code(u)}</td>
     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${ROLE_STYLE[u.role]}`}>{ROLE_LABELS[u.role]}</span></td>
     <td className="px-4 py-3 text-xs text-slate-500" dir="ltr">{u.email}</td>
     <td className="px-4 py-3">

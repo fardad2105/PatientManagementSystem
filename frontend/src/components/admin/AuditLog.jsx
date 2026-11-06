@@ -4,7 +4,7 @@ import { formatJalali } from "@/lib/date";
 import { ROLE_LABELS, actionLabel, resourceLabel } from "@/lib/labels";
 
 export default function AuditLog() {
-  const { data = [] } = useQuery({ queryKey: ["admin", "audit"], queryFn: () => api.get("/admin/audit-logs", { params: { limit: 200 } }).then((r) => r.data) });
+  const { data = [], isLoading } = useQuery({ queryKey: ["admin", "audit"], queryFn: () => api.get("/admin/audit-logs", { params: { limit: 200 } }).then((r) => r.data) });
   return (
     <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white" data-testid="audit-log-table">
       <table className="w-full min-w-[820px] text-sm">
@@ -29,6 +29,7 @@ export default function AuditLog() {
           ))}
         </tbody>
       </table>
+      {data.length === 0 && <p className="p-8 text-center text-sm text-slate-500" data-testid="audit-log-empty">{isLoading ? "در حال بارگذاری…" : "رویدادی ثبت نشده است."}</p>}
     </div>
   );
 }

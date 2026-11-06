@@ -7,11 +7,12 @@ const ACTIONS = {
   delete: "حذف", view: "مشاهده پرونده", assign: "تخصیص پزشک", unassign: "لغو تخصیص", create_physician: "ثبت پزشک", reset_password: "بازنشانی رمز",
   change_password: "تغییر رمز", set_status: "تغییر وضعیت حساب", update_user: "ویرایش کاربر", delete_user: "حذف کاربر", create_content: "ایجاد محتوا",
   update_content: "ویرایش محتوا", delete_content: "حذف محتوا", approve: "تأیید ثبت‌نام", reject: "رد ثبت‌نام",
+  update_targets: "ویرایش محدوده هدف",
 };
 const RESOURCES = {
   user: "حساب کاربری", symptom_entry: "ماژول علائم", lab_result: "ماژول آزمایش", medication: "ماژول دارو", medication_log: "ثبت مصرف دارو",
   appointment: "نوبت‌ها", lab_targets: "محدوده هدف", physician_assignment: "تخصیص‌ها", education_content: "محتوای آموزشی", patient: "پرونده بیمار",
-  patient_profile: "پرونده شخصی", medical_profile: "پرونده پزشکی",
+  patient_profile: "پرونده شخصی", medical_profile: "پرونده پزشکی", patient_record: "پرونده بیمار",
 };
 export const actionLabel = (a) => {
   const base = (a || "").split(":")[0];
