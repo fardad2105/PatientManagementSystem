@@ -124,7 +124,7 @@ export default function PatientDashboard() {
           </div>
           <Link to="/patient/appointments" data-testid="dashboard-next-appointment" className="rounded-2xl bg-white/15 px-6 py-4 text-center backdrop-blur transition-colors hover:bg-white/25">
             <p className="text-xs text-blue-100">ویزیت بعدی</p>
-            <p className="mt-1 text-lg font-extrabold">{data.next_appointment ? formatJalali(data.next_appointment.scheduled_at) : "ثبت نشده"}</p>
+            <p className="mt-1 text-lg font-extrabold">{data.next_appointment ? formatJalali(data.next_appointment.scheduled_at, true) : "ثبت نشده"}</p>
             {data.next_appointment?.physician_name && <p className="mt-1 text-xs text-blue-100">{data.next_appointment.physician_name}</p>}
           </Link>
         </section>
