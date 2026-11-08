@@ -28,6 +28,7 @@ public class DocumentService {
     private final MedicalDocumentRepository repo;
     private final UserRepository users;
     private final StorageService storage;
+    private final app.thyrocare.repository.Repositories.PhysicianNoteRepository notes;
 
     public record FileBlob(byte[] data, String contentType, String filename) {
     }
@@ -72,6 +73,7 @@ public class DocumentService {
     @Transactional
     public void delete(UUID patientId, UUID id) {
         find(patientId, id).setDeleted(true);
+        notes.deleteForTarget("document", id);
     }
 
     @Transactional(readOnly = true)

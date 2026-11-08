@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MessageSquareText, Pencil, Trash2 } from "lucide-react";
+import { MessageSquareText, Pencil } from "lucide-react";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { api, apiError } from "@/lib/api";
@@ -26,7 +27,7 @@ const Note = ({ n, mine, onSaved }) => {
         {mine && !edit && (
           <span className="flex gap-1">
             <button onClick={() => setEdit(true)} aria-label="ویرایش" data-testid={`note-edit-${n.id}`} className="rounded p-1 hover:bg-green-100"><Pencil className="h-3.5 w-3.5" /></button>
-            <button onClick={() => run(() => api.delete(`/physician/notes/${n.id}`))} aria-label="حذف" data-testid={`note-delete-${n.id}`} className="rounded p-1 text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
+            <ConfirmDelete title="حذف این یادداشت؟" onConfirm={() => run(() => api.delete(`/physician/notes/${n.id}`))} testId={`note-delete-${n.id}`} />
           </span>
         )}
       </p>

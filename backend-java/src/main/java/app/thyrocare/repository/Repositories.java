@@ -99,6 +99,10 @@ public final class Repositories {
         List<PhysicianNote> findByPatient_IdOrderByCreatedAtDesc(UUID patientId);
 
         Optional<PhysicianNote> findByIdAndPhysician_Id(UUID id, UUID physicianId);
+
+        @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Query("delete from PhysicianNote n where n.targetType = :type and n.targetId = :id")
+        int deleteForTarget(@org.springframework.data.repository.query.Param("type") String type, @org.springframework.data.repository.query.Param("id") UUID id);
     }
 
     public interface LoginAttemptRepository extends JpaRepository<LoginAttempt, String> {

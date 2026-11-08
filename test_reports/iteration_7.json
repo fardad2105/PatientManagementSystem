@@ -1,0 +1,40 @@
+{
+  "summary": "Phase 7 (neck ultrasound follow-up, medical documents, physician notes) tested end-to-end on the Java backend and React UI. Backend: 15/15 new pytest tests pass, and the phase 5+6 regression suites pass 23/23. Covered: ultrasound CRUD and validation (missing exam_date 422, future date 400, bad enum 422, dimension >500 422, foreign or unknown report_document_id 404). Documents: PNG/PDF upload, real object-storage round-trip with exact bytes, signature sniffing (text renamed to .png gives 400), bad category or future date 400, >10MB 413, soft delete then 404. Physician: list and download work, patient role gets 403, unassigned patient 404. Notes: create (ultrasound/document/general), target validation 404/400/422, only the author can edit or delete (patient 403, admin 403/404), patient sees edits. UI: patient sidebar ultrasound/documents nav works. The ultrasound dialog's save button stays disabled until a Jalali date is picked. All selects work, the 'other' reason shows a text field, report upload and findings add/remove work. The saved card shows every value plus the findings table and a report chip that opens a blob tab. Edit pre-fills all fields, including Persian digits, and persists; non-numeric dims show a client toast; 600mm shows a generic 422 toast. Delete works with a confirm step. Documents page: client rejects .txt, server rejects a fake .png (toast shown), PDF upload with category/title/date/notes works, open/filter/delete work. Physician detail /physician/patients/<id>: physician-records shows the patient's ultrasounds and documents, has no patient edit or delete buttons, and files open. Notes add on ultrasound, document and general; edit and delete work. The patient sees ultrasound and document notes read-only with no inputs. At 390px there is no page overflow on /patient/ultrasound, /patient/documents or the dialogs, and bottom-nav scrolls horizontally (scrollWidth 524 > 390, overflow-x auto). ONE FUNCTIONAL BUG: general physician notes are never shown to the patient.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "DELETE /api/patient/ultrasounds/{id}, DELETE /api/patient/documents/{id}", "issue": "Physician notes attached to a deleted ultrasound or soft-deleted document are not removed or hidden. GET /api/patient/notes and /api/physician/patients/{id}/notes keep returning these orphan notes (verified). They are invisible in the UI but still listed in the API and stay in the DB."},
+      {"endpoint": "POST /api/patient/ultrasounds", "issue": "On 422, the specific Persian message (e.g. 'اندازه باید بین ۰ تا ۵۰۰ میلی‌متر باشد') is not shown in the UI; the toast is the generic 'برخی از مقادیر واردشده معتبر نیستند'. Either surface field errors or add a client-side 0-500 check."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Patient notes display", "issue": "General physician notes (target_type='general'), created via note-input-general on the physician page, are NOT rendered anywhere for the patient. NotesThread with targetType='general' is used only in PhysicianRecords.jsx (canWrite). NeckUltrasound.jsx and Documents.jsx fetch /patient/notes but render only per-ultrasound and per-document threads, and the dashboard does not show them either. This breaks the requirement that notes are visible to the patient.", "selector": "[data-testid='notes-general']", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Ultrasound dialog with report file", "issue": "The report file is uploaded before the ultrasound is saved. If the save then fails (e.g. a 422 on size >500), the uploaded document stays as an orphan, and every retry uploads a duplicate 'گزارش سونوگرافی گردن' document. Fix: keep the uploaded id in state after the first upload, or validate before uploading.", "affected_selectors": ["us-file-input", "us-save-button"]}
+    ],
+    "design_issues": [
+      {"screen": "Physician notes", "issues": ["note-delete-<id> deletes immediately without the ConfirmDelete dialog used elsewhere (minor UX inconsistency)."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_thyrocare_phase7_ultrasound_documents.py", "/app/test_reports/pytest/pytest_phase7.xml"],
+  "action_items": [
+    "HIGH: Render general physician notes for the patient (e.g. a 'یادداشت‌های پزشک' block on /patient/documents or the dashboard using NotesThread targetType='general' canWrite={false}).",
+    "Delete or hide physician notes whose ultrasound/document target was deleted (filter in PhysicianNoteService.forPatient, or delete them in the ultrasound and document delete paths).",
+    "UltrasoundDialog: avoid duplicate or orphan report uploads when the save fails (cache the uploaded reportId in state).",
+    "Optional: surface the backend's field-level validation messages on 422, or add client-side 0-500mm checks."
+  ],
+  "critical_code_review_comments": [
+    "PhysicianNoteService.create: when target_type is 'document' it checks that the document isn't deleted, but ultrasound targets are hard-deleted, so notes on them are orphaned. There is no cascade because target_id is not a foreign key.",
+    "DocumentService upload: size check plus magic-byte sniffing is good. The content type stored is the sniffed one, not the client-supplied one (correct). Downloads set nosniff, inline and no-store (good).",
+    "UltrasoundDialog.submit: uploadDocument runs before toBody validation, so a client-side 'ابعاد باید عدد باشند' error happens after the file is already uploaded (orphan upload)."
+  ],
+  "updated_files": ["/app/backend/tests/test_thyrocare_phase7_ultrasound_documents.py"],
+  "success_rate": {"backend": "100% (15/15 new, 23/23 regression)", "frontend": "~95% (all flows work; general notes not visible to patient)"},
+  "seed_data_creation": "None left behind. All TEST data I created (ultrasounds, documents including the ultrasound report upload, notes, TEST_P7 user) was deleted. E1's own TEST_doc (d7989565...) and ultrasound 2026-10-01 (501bba36...) were left untouched.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Demo patient id is now d2ae0046-0a9c-4b80-8334-025112d221fb (it changed again). Server date is 2026-11-08 (Tehran 1405/08/17). The Jalali picker is react-multi-date-picker: click '[data-testid=X] input' then '.rmdp-day.rmdp-today span'. OptionSelect options are '<testId>-option-<key>'. ConfirmDelete confirm button is '<testId>-confirm'. upload-file-name only exists after a file is chosen. In headless Chromium a PDF opened via blob shows about:blank (no PDF viewer), but the /file request returns 200; PNG opens as blob:. Run pytest with -n 0. Do not restart the backend via supervisor.",
+  "rca of the issue": "General notes: PhysicianRecords renders NotesThread targetType='general', but no patient page renders it. NeckUltrasound.jsx and Documents.jsx pass notes only to UltrasoundCard and DocumentList, which filter by target_type 'ultrasound' or 'document' with a matching target_id. Repro: as the physician, add a note in note-input-general; as the patient, check /patient, /patient/ultrasound and /patient/documents. The note is absent, although GET /api/patient/notes returns it."
+}

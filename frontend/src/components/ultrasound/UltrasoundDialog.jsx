@@ -39,6 +39,7 @@ const toBody = (f, reportId) => {
   const n = (v) => (v === NONE ? null : v);
   const dims = [f.finding_size_mm, ...f.findings.flatMap((x) => [x.length_mm, x.width_mm, x.height_mm])];
   if (dims.some((v) => v !== "" && Number.isNaN(num(v)))) throw new Error("ابعاد باید عدد باشند");
+  if (dims.some((v) => v !== "" && (num(v) < 0 || num(v) > 500))) throw new Error("اندازه باید بین ۰ تا ۵۰۰ میلی‌متر باشد");
   return {
     exam_date: f.exam_date, imaging_center: f.imaging_center, radiologist_name: f.radiologist_name, reason: n(f.reason), reason_text: f.reason_text,
     thyroid_bed_status: n(f.thyroid_bed_status), residual_tissue: n(f.residual_tissue), bed_finding: n(f.bed_finding), lymph_node_status: n(f.lymph_node_status),
@@ -51,6 +52,7 @@ const toBody = (f, reportId) => {
 export default function UltrasoundDialog({ initial, onClose, onSaved }) {
   const [f, setF] = useState(() => fromDto(initial));
   const [file, setFile] = useState(null);
+  const [uploadedId, setUploadedId] = useState(null);
   const [busy, setBusy] = useState(false);
   const set = (k) => (v) => setF((s) => ({ ...s, [k]: v?.target ? v.target.value : v }));
   const sel = (k, map, id) => <OptionSelect value={f[k]} onChange={set(k)} options={opt(map)} testId={id} />;
@@ -58,8 +60,12 @@ export default function UltrasoundDialog({ initial, onClose, onSaved }) {
   const submit = async () => {
     setBusy(true);
     try {
-      let reportId = f.report?.id || null;
-      if (file) reportId = (await uploadDocument({ file, category: "ultrasound", title: "گزارش سونوگرافی گردن", date: f.exam_date })).id;
+      toBody(f, null);
+      let reportId = uploadedId || f.report?.id || null;
+      if (file && !uploadedId) {
+        reportId = (await uploadDocument({ file, category: "ultrasound", title: "گزارش سونوگرافی گردن", date: f.exam_date })).id;
+        setUploadedId(reportId);
+      }
       const body = toBody(f, reportId);
       if (initial?.id) await api.put(`/patient/ultrasounds/${initial.id}`, body);
       else await api.post("/patient/ultrasounds", body);
@@ -91,7 +97,7 @@ export default function UltrasoundDialog({ initial, onClose, onSaved }) {
               <Upload className="h-4 w-4 shrink-0" />
               <span className="truncate" data-testid="us-file-name">{file ? file.name : f.report ? `${f.report.original_filename} (جایگزینی با فایل جدید)` : "انتخاب فایل"}</span>
               <input type="file" accept={ACCEPT} className="hidden" data-testid="us-file-input"
-                onChange={(e) => { const x = e.target.files?.[0]; if (checkFile(x)) setFile(x); e.target.value = ""; }} />
+                onChange={(e) => { const x = e.target.files?.[0]; if (checkFile(x)) { setFile(x); setUploadedId(null); } e.target.value = ""; }} />
             </label>
           </Field>
         </Section>

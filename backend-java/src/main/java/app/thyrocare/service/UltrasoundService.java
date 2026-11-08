@@ -24,6 +24,7 @@ public class UltrasoundService {
     private final NeckUltrasoundRepository repo;
     private final UserRepository users;
     private final DocumentService documents;
+    private final app.thyrocare.repository.Repositories.PhysicianNoteRepository notes;
 
     @Transactional(readOnly = true)
     public List<UltrasoundDto> list(UUID patientId) {
@@ -49,6 +50,7 @@ public class UltrasoundService {
     @Transactional
     public void delete(UUID patientId, UUID id) {
         repo.delete(find(patientId, id));
+        notes.deleteForTarget("ultrasound", id);
     }
 
     private NeckUltrasound find(UUID patientId, UUID id) {
