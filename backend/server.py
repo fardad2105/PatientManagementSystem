@@ -45,6 +45,7 @@ for r in (auth_router, patient_router, physician_router, admin_router):
 
 
 @app.get("/api/health")
+@app.get("/health")  # alias for external health monitors
 async def health():
     return {"status": "ok"}
 

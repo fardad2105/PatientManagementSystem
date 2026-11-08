@@ -105,8 +105,18 @@ class TestAuth:
     def test_bcrypt_hash_format(self):
         # Java backend: PostgreSQL 'thyrocare' (Spring BCrypt emits $2a$, compatible with $2b$)
         import subprocess
-        out = subprocess.run(["su", "postgres", "-c", f"psql -d thyrocare -tAc \"select password_hash from users where email='{ADMIN[0]}'\""],
-                             capture_output=True, text=True).stdout.strip()
+        sql = f"select password_hash from users where email='{ADMIN[0]}'"
+        # sandbox runs psql as the postgres user; local dev keeps Postgres in the pms-postgres container
+        candidates = [
+            ["su", "postgres", "-c", f'psql -d thyrocare -tAc "{sql}"'],
+            ["docker", "exec", "pms-postgres", "psql", "-U", "thyrocare", "-d", "thyrocare", "-tAc", sql],
+        ]
+        out = ""
+        for cmd in candidates:
+            r = subprocess.run(cmd, capture_output=True, text=True)
+            if r.returncode == 0 and r.stdout.strip():
+                out = r.stdout.strip()
+                break
         assert out.startswith("$2a$") or out.startswith("$2b$"), out
 
 

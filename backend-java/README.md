@@ -18,13 +18,19 @@ Same REST contract (`/api/...`, snake_case JSON, `{"detail": ...}` errors) as th
 - 5 failed logins per account → 15-minute lockout
 
 ## Run locally
-Requirements: JDK 17, Maven 3.9, PostgreSQL 14+.
+Requirements: JDK 17, Maven 3.9, PostgreSQL 14+ running on `localhost:5432` with database `thyrocare` (`createdb thyrocare`).
 ```
-createdb thyrocare
+mvn spring-boot:run          # http://localhost:8080/api/health
+```
+All config (`DATABASE_URL`, `JWT_SECRET`, `ADMIN_*`, `CORS_ORIGINS`, ...) has local-dev defaults in
+`src/main/resources/application.yml`, so no env vars are needed to run. Flyway creates/updates the
+schema automatically on first start. Admin login: `gillianarchuleta90119@outlook.com` / `ThyroAdmin#2026`.
+
+To override any value, export it before running (env vars take precedence over the defaults):
+```
 export DATABASE_URL=jdbc:postgresql://localhost:5432/thyrocare DATABASE_USERNAME=... DATABASE_PASSWORD=...
 export JWT_SECRET=<64 hex chars> ADMIN_EMAIL=... ADMIN_PASSWORD=... CORS_ORIGINS=http://localhost:3000
 export COOKIE_SECURE=false SEED_DEMO_DATA=true
-mvn spring-boot:run          # http://localhost:8080/api/health
 ```
 Frontend: set `REACT_APP_BACKEND_URL=http://localhost:8080` in `frontend/.env`, then `yarn start`.
 

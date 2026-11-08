@@ -104,7 +104,10 @@ public class DataSeeder implements CommandLineRunner {
             a.setPatient(patient);
             a.setTitle("ویزیت پیگیری غدد (نمونه‌ی ساختگی)");
             a.setAppointmentType("visit");
-            a.setScheduledAt(Instant.now().plus(java.time.Duration.ofDays(10)));
+            // Scheduled at +2d with a 7-day remind window: the reminder is due from seed time
+            // onward (remind_at = scheduled_at - 7d is in the past) — demo reminders must be
+            // visible immediately for /patient/reminders tests.
+            a.setScheduledAt(Instant.now().plus(java.time.Duration.ofDays(2)));
             a.setLocation("کلینیک نمونه");
             a.setPhysicianName("دکتر نمونه");
             a.setRemindBeforeMinutes(10080);

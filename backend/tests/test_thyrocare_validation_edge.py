@@ -26,9 +26,12 @@ def test_impossible_calendar_date_rejected(patient):
     assert r.status_code == 422, f"impossible date accepted: {r.status_code} {r.text[:200]}"
 
 
-def test_persian_digits_national_id_rejected(patient):
+def test_persian_digits_national_id_normalized(patient):
+    # Java backend: JsonConfig normalizes Persian/Arabic digits to ASCII before validation —
+    # same contract asserted by phase2 TestProfileJava.test_persian_digits_and_future.
     r = patient.put(f"{API}/patient/profile/personal", json={"national_id": "۰۰۱۲۳۴۵۶۷۸"})
-    assert r.status_code == 422, f"persian digits accepted: {r.status_code} {r.text[:200]}"
+    assert r.status_code == 200, f"persian digits rejected: {r.status_code} {r.text[:200]}"
+    assert r.json()["national_id"] == "0012345678"
 
 
 def test_persian_digits_date_rejected(patient):

@@ -4,9 +4,10 @@ server:
 
 spring:
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    # Defaults below are local-dev values; set the env vars to override (deploy does).
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/thyrocare}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
   jpa:
     open-in-view: false
     hibernate:
@@ -28,9 +29,10 @@ spring:
       fail-on-unknown-properties: false
 
 app:
-  jwt-secret: ${JWT_SECRET}
-  admin-email: ${ADMIN_EMAIL}
-  admin-password: ${ADMIN_PASSWORD}
-  seed-demo-data: ${SEED_DEMO_DATA:false}
-  cors-origins: ${CORS_ORIGINS}
-  cookie-secure: ${COOKIE_SECURE:true}
+  # Local-dev defaults: override via env vars in any real deployment (see deploy/docker-compose.yml).
+  jwt-secret: ${JWT_SECRET:661f632dc7b8b26b8cc665a7d289a4f35dba102c4403b4130c04696f59d49b32}
+  admin-email: ${ADMIN_EMAIL:gillianarchuleta90119@outlook.com}
+  admin-password: ${ADMIN_PASSWORD:ThyroAdmin#2026}
+  seed-demo-data: ${SEED_DEMO_DATA:true}
+  cors-origins: ${CORS_ORIGINS:http://localhost:3000}
+  cookie-secure: ${COOKIE_SECURE:false}
