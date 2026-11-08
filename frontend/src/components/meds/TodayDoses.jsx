@@ -5,7 +5,7 @@ import { Pill, Check, X, ChevronLeft, CircleCheck, CircleX } from "lucide-react"
 import { api, apiError } from "@/lib/api";
 import { toFa } from "@/lib/date";
 
-const timeOf = (iso) => toFa(new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }));
+const timeOf = (iso) => toFa(new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tehran" }));
 
 const Dose = ({ d, onLog, pending }) => (
   <li className="flex flex-wrap items-center gap-4 rounded-2xl bg-slate-50 p-4" data-testid={`today-dose-${d.medication_id}`}>

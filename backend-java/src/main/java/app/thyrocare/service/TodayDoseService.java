@@ -44,9 +44,9 @@ public class TodayDoseService {
 
     @Transactional
     public List<TodayDoseDto> log(UUID patientId, UUID medicationId, String status) {
-        boolean already = today(patientId).stream()
-                .anyMatch(d -> d.medicationId().equals(medicationId) && d.status() != null);
-        if (already) throw new ApiException(HttpStatus.CONFLICT, "مصرف امروز این دارو قبلاً ثبت شده است");
+        TodayDoseDto row = today(patientId).stream().filter(d -> d.medicationId().equals(medicationId)).findFirst()
+                .orElseThrow(() -> ApiException.notFound("این دارو برای امروز فعال نیست"));
+        if (row.status() != null) throw new ApiException(HttpStatus.CONFLICT, "مصرف امروز این دارو قبلاً ثبت شده است");
         medications.addLog(patientId, medicationId, new MedicationLogRequest(Instant.now(), status, null));
         return today(patientId);
     }

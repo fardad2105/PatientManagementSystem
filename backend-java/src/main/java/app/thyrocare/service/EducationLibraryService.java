@@ -50,9 +50,13 @@ public class EducationLibraryService {
             EducationView v = new EducationView();
             v.setContentId(id);
             v.setPatientId(patientId);
-            views.saveAndFlush(v);
-            contents.incrementViews(id);
-            count++;
+            try {
+                views.saveAndFlush(v);
+                contents.incrementViews(id);
+                count++;
+            } catch (org.springframework.dao.DataIntegrityViolationException ignored) {
+                // concurrent first open by the same patient; already counted
+            }
         }
         return new LibraryDetailDto(e.getId(), e.getTitle(), e.getContentType(), e.getSummary(), e.getBody(),
                 e.getMediaUrl(), e.getReviewerName(), e.getReviewedAt(), count);
