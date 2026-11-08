@@ -8,6 +8,7 @@ import { formatJalali, toFa } from "@/lib/date";
 import { CANCER_TYPE, LAB_TESTS, label } from "@/lib/labels";
 import { MedicalSummary } from "@/components/ProfileSummary";
 import { FullScreenLoader } from "@/components/ProtectedRoute";
+import { TodayDoses } from "@/components/meds/TodayDoses";
 
 const MODULES = {
   medications: { label: "مدیریت داروها", icon: Pill },
@@ -135,6 +136,7 @@ export default function PatientDashboard() {
         </section>
       </div>
       {data.due_reminders.length > 0 && <RemindersList items={data.due_reminders} />}
+      <TodayDoses />
       <HealthSummary data={data} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2"><MedicalSummary medical={data.profile.medical} prefix="dashboard" /></div>

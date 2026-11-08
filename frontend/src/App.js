@@ -16,6 +16,8 @@ import PhysicianPatients from "@/pages/physician/PhysicianPatients";
 import PhysicianDashboard from "@/pages/physician/PhysicianDashboard";
 import PhysicianAlerts from "@/pages/physician/PhysicianAlerts";
 import Symptoms from "@/pages/patient/Symptoms";
+import Education from "@/pages/patient/Education";
+import EducationDetail from "@/pages/patient/EducationDetail";
 import PhysicianPatientDetail from "@/pages/physician/PhysicianPatientDetail";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -51,6 +53,8 @@ function App() {
           <Route path="/patient/labs" element={guarded(["patient"], Labs)} />
           <Route path="/patient/appointments" element={guarded(["patient"], Appointments)} />
           <Route path="/patient/symptoms" element={guarded(["patient"], Symptoms)} />
+          <Route path="/patient/education" element={guarded(["patient"], Education)} />
+          <Route path="/patient/education/:id" element={guarded(["patient"], EducationDetail)} />
           <Route path="/physician" element={guarded(["physician"], PhysicianDashboard)} />
           <Route path="/physician/patients" element={guarded(["physician"], PhysicianPatients)} />
           <Route path="/physician/alerts" element={guarded(["physician"], PhysicianAlerts)} />

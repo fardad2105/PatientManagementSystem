@@ -14,13 +14,14 @@ const NAV = {
     { to: "/patient/medications", label: "داروها", icon: Pill, id: "medications" },
     { to: "/patient/labs", label: "آزمایش‌ها", icon: FlaskConical, id: "labs" },
     { to: "/patient/appointments", label: "نوبت‌ها", icon: CalendarClock, id: "appointments" },
-    { to: "/patient/symptoms", label: "ثبت علائم", icon: HeartPulse, id: "symptoms" },
-    { to: "/patient/profile", label: "پرونده من", icon: UserRound, id: "profile" },
+    { to: "/patient/symptoms", label: "ثبت علائم", short: "علائم", icon: HeartPulse, id: "symptoms" },
+    { to: "/patient/education", label: "آموزش", icon: BookOpen, id: "education", badge: "education" },
+    { to: "/patient/profile", label: "پرونده من", short: "پرونده", icon: UserRound, id: "profile" },
   ],
   physician: [
     { to: "/physician", label: "داشبورد پزشک", short: "داشبورد", icon: LayoutDashboard, end: true, id: "dashboard" },
     { to: "/physician/patients", label: "بیماران من", icon: Users, id: "patients" },
-    { to: "/physician/alerts", label: "هشدارهای درمانی", short: "هشدارها", icon: TriangleAlert, id: "alerts", badge: true },
+    { to: "/physician/alerts", label: "هشدارهای درمانی", short: "هشدارها", icon: TriangleAlert, id: "alerts", badge: "alerts" },
   ],
   admin: [
     { to: "/admin", label: "داشبورد مدیریت", short: "داشبورد", icon: LayoutDashboard, end: true, id: "admin" },
@@ -59,10 +60,17 @@ const Avatar = ({ name, role, className = "h-10 w-10" }) => (
   <span className={`flex shrink-0 items-center justify-center rounded-full font-bold text-white ${theme(role).solid} ${className}`}>{(name || "?").trim()[0]}</span>
 );
 
-const AlertsBadge = () => {
-  const { data = [] } = useQuery({ queryKey: ["physician-alerts"], queryFn: () => api.get("/physician/alerts").then((r) => r.data), refetchInterval: 120_000 });
-  if (!data.length) return null;
-  return <span className="mr-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white" data-testid="nav-alerts-count">{toFa(data.length)}</span>;
+const BADGES = {
+  alerts: { key: "physician-alerts", url: "/physician/alerts", count: (d) => d.length, testId: "nav-alerts-count", cls: "bg-rose-500" },
+  education: { key: "education-unread", url: "/patient/education/unread-count", count: (d) => d.unread, testId: "nav-education-count", cls: "bg-blue-600" },
+};
+
+const NavBadge = ({ type }) => {
+  const b = BADGES[type];
+  const { data } = useQuery({ queryKey: [b.key], queryFn: () => api.get(b.url).then((r) => r.data), refetchInterval: 120_000 });
+  const n = data ? b.count(data) : 0;
+  if (!n) return null;
+  return <span className={`mr-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold text-white ${b.cls}`} data-testid={b.testId}>{toFa(n)}</span>;
 };
 
 const Bell = () => {
@@ -102,7 +110,7 @@ export default function AppShell({ children }) {
             <NavLink key={it.to} to={it.to} end={it.end} className={navCls(user.role)} data-testid={`sidebar-nav-${it.id}`}>
               <it.icon className="h-5 w-5" />
               {it.short || it.label}
-              {it.badge && <AlertsBadge />}
+              {it.badge && <NavBadge type={it.badge} />}
             </NavLink>
           ))}
         </nav>
@@ -146,7 +154,7 @@ export default function AppShell({ children }) {
           >
             <it.icon className="h-5 w-5" />
             {it.short || it.label}
-            {it.badge && <span className="absolute -top-1 left-0"><AlertsBadge /></span>}
+            {it.badge && <span className="absolute -top-1 left-0"><NavBadge type={it.badge} /></span>}
           </NavLink>
         ))}
       </nav>

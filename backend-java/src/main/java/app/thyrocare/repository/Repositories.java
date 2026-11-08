@@ -67,6 +67,20 @@ public final class Repositories {
         List<EducationContent> findAllByOrderByUpdatedAtDesc();
 
         long countByStatus(String status);
+
+        List<EducationContent> findByStatusAndReviewerNameIsNotNullOrderByReviewedAtDesc(String status);
+
+        Optional<EducationContent> findByIdAndStatusAndReviewerNameIsNotNull(UUID id, String status);
+
+        @org.springframework.data.jpa.repository.Modifying
+        @org.springframework.data.jpa.repository.Query("update EducationContent e set e.viewCount = e.viewCount + 1 where e.id = :id")
+        int incrementViews(@org.springframework.data.repository.query.Param("id") UUID id);
+    }
+
+    public interface EducationViewRepository extends JpaRepository<EducationView, UUID> {
+        boolean existsByContentIdAndPatientId(UUID contentId, UUID patientId);
+
+        List<EducationView> findByPatientId(UUID patientId);
     }
 
     public interface LoginAttemptRepository extends JpaRepository<LoginAttempt, String> {

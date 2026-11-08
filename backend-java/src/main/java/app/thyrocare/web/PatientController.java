@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/patient")
 @RequiredArgsConstructor
 public class PatientController {
-    private static final List<String> UPCOMING = List.of("timeline", "documents", "education");
+    private static final List<String> UPCOMING = List.of("timeline", "documents");
 
     private final ProfileService profiles;
     private final MedicationService medications;

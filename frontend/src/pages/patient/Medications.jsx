@@ -15,6 +15,7 @@ export default function Medications() {
     qc.invalidateQueries({ queryKey: ["medications"] });
     qc.invalidateQueries({ queryKey: ["med-logs"] });
     qc.invalidateQueries({ queryKey: ["med-week"] });
+    qc.invalidateQueries({ queryKey: ["med-today"] });
     qc.invalidateQueries({ queryKey: ["patient-dashboard"] });
   };
   if (error) return <p className="rounded-2xl bg-rose-50 p-6 text-sm text-rose-700" data-testid="medications-error">{apiError(error)}</p>;

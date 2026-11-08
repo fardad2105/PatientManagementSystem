@@ -339,6 +339,28 @@ public final class Dtos {
                                          Integer adherencePercent, List<MedicationWeekDto> medications) {
     }
 
+    // ---------- today's doses (one-tap) ----------
+    /** status: taken | missed | null (not yet logged today) */
+    public record TodayDoseDto(UUID medicationId, String name, String doseText, String frequencyText,
+                               String status, Instant loggedAt) {
+    }
+
+    public record TodayDoseRequest(@NotBlank @Pattern(regexp = "taken|missed", message = "وضعیت نامعتبر است") String status) {
+    }
+
+    // ---------- patient education library ----------
+    public record LibraryItemDto(UUID id, String title, String contentType, String summary, String reviewerName,
+                                 Instant reviewedAt, int viewCount, boolean viewed) {
+        public static LibraryItemDto from(EducationContent e, boolean viewed) {
+            return new LibraryItemDto(e.getId(), e.getTitle(), e.getContentType(), e.getSummary(), e.getReviewerName(),
+                    e.getReviewedAt(), e.getViewCount(), viewed);
+        }
+    }
+
+    public record LibraryDetailDto(UUID id, String title, String contentType, String summary, String body,
+                                   String mediaUrl, String reviewerName, Instant reviewedAt, int viewCount) {
+    }
+
     public record StatsDto(long patientsActive, long patientsPending, long physiciansActive, long assignments) {
     }
 }
