@@ -4,6 +4,7 @@ set -e
 sudo service postgresql start
 until pg_isready -q; do sleep 1; done
 cd /tmp
+sudo -u postgres psql -qc "alter user postgres password 'postgres'"
 sudo -u postgres psql -tAc "select 1 from pg_roles where rolname='thyrocare'" | grep -q 1 || \
   sudo -u postgres psql -c "create role thyrocare login password 'thyrocare_dev'"
 sudo -u postgres psql -tAc "select 1 from pg_database where datname='thyrocare'" | grep -q 1 || \

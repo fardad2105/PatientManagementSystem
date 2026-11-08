@@ -12,6 +12,7 @@ import { LAB_TESTS } from "@/lib/labels";
 import AppointmentCard from "@/components/appointments/AppointmentCard";
 import { TargetsEditor } from "@/components/physician/TargetsEditor";
 import { WeeklyAdherence } from "@/components/meds/WeeklyAdherence";
+import { PhysicianRecords } from "@/components/physician/PhysicianRecords";
 import { SymptomTrend } from "@/components/symptoms/SymptomTrend";
 
 const useSub = (id, path) =>
@@ -25,6 +26,7 @@ const ClinicalRecords = ({ id }) => {
   return (
     <div className="space-y-4">
       <TargetsEditor patientId={id} />
+      <PhysicianRecords patientId={id} />
       <WeeklyAdherence url={`/physician/patients/${id}/medications/week`} testId="physician-weekly-adherence" />
       <SymptomTrend entries={symptoms.data || []} testId="physician-symptom-trend" />
       <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" data-testid="physician-appointments-section">

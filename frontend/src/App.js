@@ -17,6 +17,8 @@ import PhysicianDashboard from "@/pages/physician/PhysicianDashboard";
 import PhysicianAlerts from "@/pages/physician/PhysicianAlerts";
 import Symptoms from "@/pages/patient/Symptoms";
 import Education from "@/pages/patient/Education";
+import NeckUltrasound from "@/pages/patient/NeckUltrasound";
+import Documents from "@/pages/patient/Documents";
 import EducationDetail from "@/pages/patient/EducationDetail";
 import PhysicianPatientDetail from "@/pages/physician/PhysicianPatientDetail";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -54,6 +56,8 @@ function App() {
           <Route path="/patient/appointments" element={guarded(["patient"], Appointments)} />
           <Route path="/patient/symptoms" element={guarded(["patient"], Symptoms)} />
           <Route path="/patient/education" element={guarded(["patient"], Education)} />
+          <Route path="/patient/ultrasound" element={guarded(["patient"], NeckUltrasound)} />
+          <Route path="/patient/documents" element={guarded(["patient"], Documents)} />
           <Route path="/patient/education/:id" element={guarded(["patient"], EducationDetail)} />
           <Route path="/physician" element={guarded(["physician"], PhysicianDashboard)} />
           <Route path="/physician/patients" element={guarded(["physician"], PhysicianPatients)} />

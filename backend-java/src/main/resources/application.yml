@@ -18,6 +18,10 @@ spring:
           time_zone: UTC
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
   jackson:
     property-naming-strategy: SNAKE_CASE
     default-property-inclusion: always
@@ -36,3 +40,5 @@ app:
   seed-demo-data: ${SEED_DEMO_DATA:true}
   cors-origins: ${CORS_ORIGINS:http://localhost:3000}
   cookie-secure: ${COOKIE_SECURE:false}
+  storage-url: ${INTEGRATION_PROXY_URL:}
+  emergent-key: ${EMERGENT_LLM_KEY:}

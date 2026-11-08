@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bell as BellIcon } from "lucide-react";
 import { api } from "@/lib/api";
-import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock, HeartPulse, TriangleAlert, Stethoscope, BookOpen, Eye } from "lucide-react";
+import { LayoutDashboard, UserRound, Users, ShieldCheck, LogOut, Activity, Pill, FlaskConical, CalendarClock, HeartPulse, TriangleAlert, Stethoscope, BookOpen, Eye, ScanLine, FolderOpen } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { ROLE_LABELS } from "@/lib/labels";
 import { toFa, todayJalali } from "@/lib/date";
@@ -15,6 +15,8 @@ const NAV = {
     { to: "/patient/labs", label: "آزمایش‌ها", icon: FlaskConical, id: "labs" },
     { to: "/patient/appointments", label: "نوبت‌ها", icon: CalendarClock, id: "appointments" },
     { to: "/patient/symptoms", label: "ثبت علائم", short: "علائم", icon: HeartPulse, id: "symptoms" },
+    { to: "/patient/ultrasound", label: "پیگیری سونوگرافی گردن", short: "سونوگرافی", icon: ScanLine, id: "ultrasound" },
+    { to: "/patient/documents", label: "مدارک پزشکی", short: "مدارک", icon: FolderOpen, id: "documents" },
     { to: "/patient/education", label: "آموزش", icon: BookOpen, id: "education", badge: "education" },
     { to: "/patient/profile", label: "پرونده من", short: "پرونده", icon: UserRound, id: "profile" },
   ],
@@ -141,7 +143,7 @@ export default function AppShell({ children }) {
         </main>
       </div>
 
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex justify-around border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur-lg">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 flex justify-between gap-1 overflow-x-auto border-t border-slate-200 bg-white/95 px-2 py-2 backdrop-blur-lg" data-testid="bottom-nav">
         {items.map((it) => (
           <NavLink
             key={it.to}
@@ -149,7 +151,7 @@ export default function AppShell({ children }) {
             end={it.end}
             data-testid={`bottom-nav-${it.id}`}
             className={({ isActive }) =>
-              `relative flex flex-col items-center gap-1 rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? theme(user.role).text : "text-slate-500"}`
+              `relative flex min-w-[52px] shrink-0 flex-col items-center gap-1 whitespace-nowrap rounded-xl px-1.5 py-1.5 text-[11px] font-medium ${isActive ? theme(user.role).text : "text-slate-500"}`
             }
           >
             <it.icon className="h-5 w-5" />

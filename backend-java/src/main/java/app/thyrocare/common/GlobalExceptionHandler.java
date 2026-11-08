@@ -17,6 +17,12 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public org.springframework.http.ResponseEntity<java.util.Map<String, String>> tooLarge() {
+        return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(java.util.Map.of("detail", "حجم فایل حداکثر ۱۰ مگابایت است"));
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> api(ApiException e) {
         return ResponseEntity.status(e.getStatus()).body(Map.of("detail", e.getMessage()));

@@ -83,6 +83,24 @@ public final class Repositories {
         List<EducationView> findByPatientId(UUID patientId);
     }
 
+    public interface MedicalDocumentRepository extends JpaRepository<MedicalDocument, UUID> {
+        List<MedicalDocument> findByPatient_IdAndDeletedFalseOrderByCreatedAtDesc(UUID patientId);
+
+        Optional<MedicalDocument> findByIdAndPatient_IdAndDeletedFalse(UUID id, UUID patientId);
+    }
+
+    public interface NeckUltrasoundRepository extends JpaRepository<NeckUltrasound, UUID> {
+        List<NeckUltrasound> findByPatient_IdOrderByExamDateDescCreatedAtDesc(UUID patientId);
+
+        Optional<NeckUltrasound> findByIdAndPatient_Id(UUID id, UUID patientId);
+    }
+
+    public interface PhysicianNoteRepository extends JpaRepository<PhysicianNote, UUID> {
+        List<PhysicianNote> findByPatient_IdOrderByCreatedAtDesc(UUID patientId);
+
+        Optional<PhysicianNote> findByIdAndPhysician_Id(UUID id, UUID physicianId);
+    }
+
     public interface LoginAttemptRepository extends JpaRepository<LoginAttempt, String> {
         @Lock(LockModeType.PESSIMISTIC_WRITE)
         @Query("select a from LoginAttempt a where a.identifier = :id")
